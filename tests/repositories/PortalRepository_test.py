@@ -125,7 +125,7 @@ class TestPortalRepository:
         track_id = 30
 
         # Act
-        result = portal_repo.get_unremarked_recordings(group_id, user_id, track_id)
+        result = portal_repo.get_recordings(group_id, user_id, track_id)
 
         # Assert
         expected_result = [

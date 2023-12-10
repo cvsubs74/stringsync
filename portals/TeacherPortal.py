@@ -88,7 +88,7 @@ class TeacherPortal(BasePortal, ABC):
 
     def get_model_generation_dashboard(self):
         return ModelGenerationDashboard(
-            self.track_repo, self.storage_repo,
+            self.track_repo, self.recording_repo, self.portal_repo, self.storage_repo,
             self.score_prediction_model_repo, self.audio_processor, self.get_models_bucket())
 
     def get_score_predictor(self):
@@ -855,7 +855,7 @@ class TeacherPortal(BasePortal, ABC):
             return
 
         # Fetch and sort recordings
-        submissions = self.portal_repo.get_unremarked_recordings(group_id, user_id, track_id)
+        submissions = self.portal_repo.get_recordings(group_id, user_id, track_id)
         if not submissions:
             st.info("No submissions found.")
             return

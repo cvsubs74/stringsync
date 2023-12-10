@@ -19,9 +19,13 @@ class ModelStorageRepository(StorageRepository):
         return self.get_public_url(model_blob_name)
 
     def load_model(self, model_name):
-        """Load a model from Google Cloud Storage."""
-        model_blob_name = f"{model_name}.joblib"
-        model_data = self.download_blob_by_name(model_blob_name)
-        model_stream = io.BytesIO(model_data)
-        model = joblib.load(model_stream)
-        return model
+        """Load a model from Google Cloud Storage and return a tuple indicating success and the model object."""
+        try:
+            model_blob_name = f"{model_name}.joblib"
+            model_data = self.download_blob_by_name(model_blob_name)
+            model_stream = io.BytesIO(model_data)
+            model = joblib.load(model_stream)
+            return model
+        except Exception as e:
+            print(f"Error loading model {model_name}: {e}")
+            return None

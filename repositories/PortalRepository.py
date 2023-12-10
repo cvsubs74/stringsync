@@ -103,16 +103,19 @@ class PortalRepository:
         cursor.execute(query)
         return cursor.fetchall()
 
-    def get_unremarked_recordings(self, group_id=None, user_id=None, track_id=None):
+    def get_recordings(self, group_id=None, user_id=None, track_id=None, is_unremarked=True):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
         query = """
             SELECT r.id, r.blob_name, r.blob_url, t.name as track_name, t.track_path, r.timestamp, r.duration,
-                   r.track_id, r.score, r.analysis, r.remarks, r.user_id, u.name as user_name                  
+                   r.track_id, r.score, r.analysis, r.remarks, r.user_id, u.name as user_name, r.is_training_data                 
             FROM recordings r
             JOIN tracks t ON r.track_id = t.id
             JOIN users u ON r.user_id = u.id
         """
-        filters = ["r.remarks IS NULL OR r.remarks = ''"]
+        if is_unremarked:
+            filters = ["r.remarks IS NULL OR r.remarks = ''"]
+        else:
+            filters = []
 
         if group_id is not None:
             filters.append("u.group_id = %s")

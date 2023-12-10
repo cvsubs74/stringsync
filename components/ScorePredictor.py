@@ -92,7 +92,9 @@ class ScorePredictor:
 
         features = pd.DataFrame([[level, offset, duration, distance]],
                                 columns=['level', 'offset', 'duration', 'distance'])
-        return True, model.predict(features)[0]
+        predicted_score = model.predict(features)[0]
+        # Format the score to 2 decimal places
+        return True, round(predicted_score, 2)
 
     def predict_score_by_generic_model(self, level, offset, duration, distance):
         model = self.model_storage_repo.load_model(self.get_generic_model_path())
@@ -102,7 +104,9 @@ class ScorePredictor:
 
         features = pd.DataFrame([[level, offset, duration, distance]],
                                 columns=['level', 'offset', 'duration', 'distance'])
-        return True, model.predict(features)[0]
+        predicted_score = model.predict(features)[0]
+        # Format the score to 2 decimal places
+        return True, round(predicted_score, 2)
 
     def get_track_model_path(self, track_name):
         # Generate a model name based on the track name
