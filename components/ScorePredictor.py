@@ -1,8 +1,7 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
 
+from models.LinearRegressionModelBuilder import LinearRegressionModelBuilder
+from models.RandomForestRegressorModelBuilder import RandomForestRegressorModelBuilder
 from repositories import TrackRepository
 from repositories.ModelStorageRepository import ModelStorageRepository
 from repositories.ScorePredictionModelRepository import ScorePredictionModelRepository
@@ -46,20 +45,8 @@ class ScorePredictor:
         # Preparing the dataset
         features = training_dataset[['level', 'offset', 'duration', 'distance']]
         target = training_dataset['score']
-
-        # Split the data
-        X_train, X_test, y_train, y_test = train_test_split(
-            features, target, test_size=0.2, random_state=42)
-
-        # Train a generic model
-        model = LinearRegression()
-        model.fit(X_train, y_train)
-
-        # Evaluate the model (optional)
-        predictions = model.predict(X_test)
-        mse = mean_squared_error(y_test, predictions)
-        print(f"Generic Model, Mean Squared Error: {mse}")
-
+        # Train model
+        model = RandomForestRegressorModelBuilder().train(features, target)
         # Store the model
         blob_path = self.get_generic_model_path()
         model_path = self.model_storage_repo.save_model(blob_path, model)
@@ -84,20 +71,8 @@ class ScorePredictor:
             # Select features and target for this track
             features = track_training_data[['level', 'offset', 'duration', 'distance']]
             target = track_training_data['score']
-
-            # Split the data
-            X_train, X_test, y_train, y_test = train_test_split(
-                features, target, test_size=0.2, random_state=42)
-
-            # Train a model
-            model = LinearRegression()
-            model.fit(X_train, y_train)
-
-            # Evaluate the model (optional)
-            predictions = model.predict(X_test)
-            mse = mean_squared_error(y_test, predictions)
-            print(f"Track: {track_name}, Mean Squared Error: {mse}")
-
+            # Train model
+            model = RandomForestRegressorModelBuilder().train(features, target)
             # Store the model
             models[track_name] = model
             track_id = track_training_data['track_id'].iloc[0]

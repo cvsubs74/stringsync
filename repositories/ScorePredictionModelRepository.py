@@ -5,7 +5,7 @@ class ScorePredictionModelRepository:
     def __init__(self, connection):
         self.connection = connection
 
-    def get_training_set(self, track_ids=None):
+    def get_training_set(self, track_ids=None, rebuild_only=False):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
 
         # Base query
@@ -16,11 +16,14 @@ class ScorePredictionModelRepository:
             INNER JOIN tracks t ON rec.track_id = t.id
             INNER JOIN ragas raga ON t.ragam_id = raga.id
             WHERE rec.is_training_data = TRUE
-            AND t.requires_model_rebuild = TRUE
             AND rec.distance IS NOT NULL
             AND t.offset IS NOT NULL
             AND rec.duration IS NOT NULL
         """
+
+        # Include rebuild condition based on the flag
+        if rebuild_only:
+            query += " AND t.requires_model_rebuild = TRUE"
 
         # Modify the query based on the provided track IDs
         if track_ids:
@@ -33,4 +36,5 @@ class ScorePredictionModelRepository:
 
         results = cursor.fetchall()
         return results
+
 
