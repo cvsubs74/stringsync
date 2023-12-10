@@ -9,9 +9,11 @@ from components.AudioProcessor import AudioProcessor
 from components.BadgeAwarder import BadgeAwarder
 from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
+from components.ScorePredictor import ScorePredictor
 from dashboards.AssignmentDashboard import AssignmentDashboard
 from dashboards.HallOfFameDashboard import HallOfFameDashboard
 from dashboards.MessageDashboard import MessageDashboard
+from dashboards.ModelGenerationDashboard import ModelGenerationDashboard
 from dashboards.NotesDashboard import NotesDashboard
 from dashboards.PracticeDashboard import PracticeDashboard
 from dashboards.ProgressDashboard import ProgressDashboard
@@ -29,6 +31,7 @@ import pandas as pd
 
 from enums.UserType import UserType
 from repositories.NotesRepository import NotesRepository
+from repositories.ScorePredictionModelRepository import ScorePredictionModelRepository
 
 
 class TeacherPortal(BasePortal, ABC):
@@ -40,6 +43,7 @@ class TeacherPortal(BasePortal, ABC):
             self.user_achievement_repo, self.user_practice_log_repo,
             self.portal_repo, self.storage_repo)
         self.notes_repo = NotesRepository(self.get_connection())
+        self.score_prediction_model_repo = ScorePredictionModelRepository(self.get_connection())
         self.student_assessment_dashboard_builder = StudentAssessmentDashboard(
             self.user_repo, self.recording_repo, self.user_activity_repo, self.user_session_repo,
             self.user_practice_log_repo, self.user_achievement_repo, self.assessment_repo,
@@ -82,13 +86,22 @@ class TeacherPortal(BasePortal, ABC):
         return HallOfFameDashboard(
             self.portal_repo, self.badge_awarder, self.avatar_loader)
 
+    def get_model_generation_dashboard(self):
+        return ModelGenerationDashboard(
+            self.track_repo, self.storage_repo,
+            self.score_prediction_model_repo, self.audio_processor, self.get_models_bucket())
+
+    def get_score_predictor(self):
+        return ScorePredictor(self.score_prediction_model_repo, self.track_repo, self.get_models_bucket())
+
     def get_notes_dashboard(self):
         return NotesDashboard(self.notes_repo)
 
     def get_recording_uploader(self):
         return RecordingUploader(
-            self.recording_repo, self.raga_repo, self.user_activity_repo, self.user_session_repo,
-            self.storage_repo, self.badge_awarder, AudioProcessor())
+            self.recording_repo, self.track_repo, self.raga_repo, self.user_activity_repo,
+            self.user_session_repo, self.score_prediction_model_repo,
+            self.storage_repo, self.badge_awarder, AudioProcessor(), self.get_models_bucket())
 
     @staticmethod
     def load_llm(temperature):
@@ -119,6 +132,7 @@ class TeacherPortal(BasePortal, ABC):
             ("📚 Resources", self.resource_management),
             ("🎵 Create Track", self.create_track),
             ("🎵 List Tracks", self.list_tracks),
+            ("🧠 Generate Prediction Models", self.generate_prediction_models),
             ("📝 Assignments", self.assignment_management),
             ("🎵 Recordings", self.list_recordings) if self.is_feature_enabled(
                 Features.TEACHER_PORTAL_RECORDINGS) else None,
@@ -624,6 +638,12 @@ class TeacherPortal(BasePortal, ABC):
                 f"<div style='padding-top:12px;color:black;font-size:14px;text-align:left'>{row_data['Description']}</div>",
                 unsafe_allow_html=True)
 
+    def generate_prediction_models(self):
+        st.markdown(f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; "
+                    "font-size: 28px;'> 🎵 Generate Prediction Models 🎵</h2>", unsafe_allow_html=True)
+        self.divider()
+        self.get_model_generation_dashboard().build()
+
     def fetch_filter_options(self, ragas):
         return {
             "Level": self.track_repo.get_all_levels(),
@@ -804,13 +824,20 @@ class TeacherPortal(BasePortal, ABC):
                     remarks = st.text_area("Remarks", value=recording.get('remarks', ''),
                                            key=f"recording_remarks_{recording['id']}")
 
+                    # Checkbox for using the recording for model training
+                    use_for_training = st.checkbox("Use this recording for model training?",
+                                                   key=f"recording_training_{recording['id']}")
+
                     # Display the timestamp, but it's not editable
                     timestamp = recording['timestamp'].strftime('%-I:%M %p | %b %d')
                     st.write(timestamp)
 
                     # Submit button for the form
                     if st.form_submit_button("Update", type="primary"):
-                        self.handle_remarks_and_badges(score, recording, remarks, 'N/A')
+                        self.handle_remarks_and_badges(
+                            score, recording, remarks, 'N/A', use_for_training)
+                        if use_for_training:
+                            self.track_repo.flag_model_rebuild(track_id)
                         st.success("Remarks/Score updated successfully.")
 
     def submissions(self):
@@ -867,6 +894,9 @@ class TeacherPortal(BasePortal, ABC):
                 selected_badge = st.selectbox("Select a badge", ['--Select a badge--', 'N/A'] + badge_options,
                                               key=f"badge_{submission['id']}")
 
+                # Checkbox for using the recording for model training
+                use_for_training = st.checkbox("Use this recording for model training?",
+                                               key=f"submission_training_{submission['id']}")
                 # Submit button for the form
                 if st.form_submit_button("Submit", type="primary"):
                     # Check for required fields
@@ -878,12 +908,15 @@ class TeacherPortal(BasePortal, ABC):
                         return
 
                     # Update logic
-                    self.handle_remarks_and_badges(score, submission, remarks, selected_badge)
+                    self.handle_remarks_and_badges(
+                        score, submission, remarks, selected_badge, use_for_training)
+                    if use_for_training:
+                        self.track_repo.flag_model_rebuild(submission['track_id'])
                     st.success("Remarks/Score/Badge updated successfully.")
 
-    def handle_remarks_and_badges(self, score, submission, remarks, badge):
-        self.recording_repo.update_score(submission["id"], score)
-        self.recording_repo.update_remarks(submission["id"], remarks)
+    def handle_remarks_and_badges(self, score, submission, remarks, badge, use_for_training):
+        self.recording_repo.update_score_remarks_training(
+            submission["id"], score, remarks, use_for_training)
         additional_params = {
             "user_id": submission["user_id"],
             "submission_id": submission["id"],

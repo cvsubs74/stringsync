@@ -5,7 +5,7 @@ import pymysql.cursors
 class TrackRepository:
     def __init__(self, connection):
         self.connection = connection
-        #self.create_tables()
+        # self.create_tables()
 
     def create_tables(self):
         cursor = self.connection.cursor()
@@ -14,6 +14,7 @@ class TrackRepository:
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255),
                 track_path TEXT,
+                model_path TEXT,
                 track_ref_path TEXT,
                 notation_path TEXT,
                 level INT,
@@ -22,6 +23,7 @@ class TrackRepository:
                 description TEXT,
                 offset INT,
                 track_hash VARCHAR(32),
+                requires_model_rebuild BOOLEAN DEFAULT FALSE,
                 FOREIGN KEY (ragam_id) REFERENCES ragas (id)
             );
         """)
@@ -194,5 +196,28 @@ class TrackRepository:
         cursor.execute(query, params)
         return cursor.fetchall()
 
+    def update_model_path(self, track_id, model_path):
+        """
+        Update the model path for a track and set requires_model_rebuild to FALSE.
 
+        :param track_id: The ID of the track to update.
+        :param model_path: The new path of the model.
+        """
+        cursor = self.connection.cursor()
+        update_query = """UPDATE tracks 
+                          SET model_path = %s, 
+                              requires_model_rebuild = FALSE
+                          WHERE id = %s;"""
+        cursor.execute(update_query, (model_path, track_id))
+        self.connection.commit()
 
+    def flag_model_rebuild(self, track_id):
+        """
+        Flag a track's model as requiring rebuilding.
+
+        :param track_id: The ID of the track to update.
+        """
+        cursor = self.connection.cursor()
+        update_query = "UPDATE tracks SET requires_model_rebuild = TRUE WHERE id = %s;"
+        cursor.execute(update_query, (track_id,))
+        self.connection.commit()

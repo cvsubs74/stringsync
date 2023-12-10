@@ -1,11 +1,9 @@
 # Standard library imports
-import datetime
 import json
 import os
-
+import plotly.express as px
 # Third-party imports
 import pandas as pd
-import pytz
 import streamlit as st
 from abc import ABC
 from streamlit_lottie import st_lottie
@@ -30,11 +28,13 @@ from enums.SoundEffect import SoundEffect
 from enums.TimeFrame import TimeFrame
 from portals.BasePortal import BasePortal
 from components.AudioProcessor import AudioProcessor
+from repositories.ScorePredictionModelRepository import ScorePredictionModelRepository
 
 
 class StudentPortal(BasePortal, ABC):
     def __init__(self):
         super().__init__()
+        self.score_prediction_model_repo = ScorePredictionModelRepository(self.get_connection())
         self.badge_awarder = BadgeAwarder(
             self.settings_repo, self.recording_repo,
             self.user_achievement_repo, self.user_practice_log_repo,
@@ -44,8 +44,9 @@ class StudentPortal(BasePortal, ABC):
 
     def get_recording_uploader(self):
         return RecordingUploader(
-            self.recording_repo, self.raga_repo, self.user_activity_repo, self.user_session_repo,
-            self.storage_repo, self.badge_awarder, AudioProcessor())
+            self.recording_repo, self.track_repo, self.raga_repo, self.user_activity_repo,
+            self.user_session_repo, self.score_prediction_model_repo,
+            self.storage_repo, self.badge_awarder, AudioProcessor(), self.get_models_bucket())
 
     def get_progress_dashboard(self):
         return ProgressDashboard(
@@ -208,26 +209,56 @@ class StudentPortal(BasePortal, ABC):
                 load_recordings = True
 
         with col2:
-            uploaded, badge_awarded, recording_id, recording_name = recording_uploader.upload(
+            uploaded, badge_awarded, recording_id, recording_audio_path = recording_uploader.upload(
                 self.get_session_id(), self.get_org_id(),
                 self.get_user_id(), track, self.get_recordings_bucket())
         with col3:
             if uploaded:
                 with st.spinner("Please wait..."):
-                    distance, score, analysis = recording_uploader.analyze_recording(
-                        track, track_audio_path, recording_name)
+                    recording = self.recording_repo.get_recording(recording_id)
+                    distance, score = recording_uploader.analyze_recording(
+                        track, recording, track_audio_path, recording_audio_path)
                     self.display_score(score)
                     self.recording_repo.update_score_and_analysis(
-                        recording_id, distance, score, analysis)
+                        recording_id, distance, score)
 
         if badge_awarded:
             self.show_animations()
 
         if load_recordings:
-            self.recordings(track['id'])
+            recordings = self.recordings(track['id'])
+            self._display_track_score_trends(track['id'], recordings)
 
         if uploaded:
-            os.remove(recording_name)
+            os.remove(recording_audio_path)
+
+    @staticmethod
+    def _display_track_score_trends(track_id, recordings):
+        if not recordings:
+            return
+
+        st.write("**Score Trends**")
+        # Convert recordings data to a DataFrame
+        df = pd.DataFrame(recordings)
+        df.sort_values(by='timestamp', inplace=True)
+
+        # Use the DataFrame index as x-axis
+        df.reset_index(inplace=True)
+
+        # Plotting the line graph for score trend
+        fig_line = px.line(
+            df,
+            x='index',
+            y='score',
+            title=f'',
+            labels={'index': 'Recordings', 'score': 'Score'}
+        )
+
+        # Set the y-axis to start from 0
+        fig_line.update_yaxes(range=[0, max(10, df['score'].max())])
+
+        # Adding the line graph to the Streamlit app
+        st.plotly_chart(fig_line, use_container_width=True)
 
     @staticmethod
     def display_recordings_header():
@@ -284,6 +315,8 @@ class StudentPortal(BasePortal, ABC):
                 badge = self.user_achievement_repo.get_badge_by_recording(recording['id'])
                 if badge:
                     col5.image(self.get_badge(badge), width=75)
+
+        return recordings
 
     def get_audio_data(self, recording):
         if recording['blob_url']:

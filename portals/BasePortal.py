@@ -1020,6 +1020,9 @@ class BasePortal(ABC):
     def get_recordings_bucket(self):
         return f'{self.get_org_dir_bucket()}/recordings'
 
+    def get_models_bucket(self):
+        return f'{self.get_org_dir_bucket()}/models'
+
     @staticmethod
     def get_badges_bucket():
         return 'badges'

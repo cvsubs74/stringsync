@@ -19,17 +19,30 @@ class RecordingRepository:
             blob_url TEXT,
             timestamp DATETIME,
             duration INT,
-            score INT,
+            score DECIMAL(4, 2),  -- Allowing up to 2 digits and 2 decimal places
             distance INT,
             analysis TEXT,
             remarks TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
             file_hash VARCHAR(32),
+            is_training_data BOOLEAN DEFAULT FALSE,
             FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE SET NULL,
             FOREIGN KEY (assignment_id) REFERENCES assignments(id) ON DELETE SET NULL
         );
         """
         cursor.execute(create_table_query)
         self.connection.commit()
+
+    def get_recording(self, recording_id):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            query = """
+                    SELECT id, user_id, track_id, assignment_id, blob_name, blob_url,
+                           timestamp, duration, score, distance, analysis, remarks, file_hash
+                    FROM recordings
+                    WHERE id = %s;
+                    """
+            cursor.execute(query, (recording_id,))
+            recording = cursor.fetchone()
+            return recording
 
     def add_recording(self, user_id, track_id, blob_name, blob_url, timestamp, duration, file_hash, analysis="",
                       remarks="", assignment_id=None):
@@ -126,12 +139,34 @@ class RecordingRepository:
         result = cursor.fetchall()
         return [row[0] for row in result]
 
+    def update_score_remarks_training(self, recording_id, score, remarks, use_for_training):
+        """Update the score, remarks, and training flag for a recording."""
+        cursor = self.connection.cursor()
+
+        # SQL query to update the recording
+        update_query = """
+            UPDATE recordings 
+            SET score = %s, remarks = %s, is_training_data = %s 
+            WHERE id = %s;
+        """
+
+        # Execute the query with the provided data
+        try:
+            cursor.execute(update_query, (score, remarks, use_for_training, recording_id))
+            self.connection.commit()
+            return True
+        except Exception as e:
+            print(f"Error while updating recording: {e}")
+            return False
+        finally:
+            cursor.close()
+
     def update_score_and_analysis(
             self,
             recording_id,
             distance,
             score,
-            analysis):
+            analysis=None):
         cursor = self.connection.cursor()
         update_query = """UPDATE recordings SET score = %s, distance = %s, analysis = %s 
                         WHERE id = %s;"""
@@ -226,3 +261,5 @@ class RecordingRepository:
         cursor.execute(query, (user_id, start_date, end_date))
         results = cursor.fetchall()
         return list(results) if results else []
+
+

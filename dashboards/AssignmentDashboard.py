@@ -82,19 +82,20 @@ class AssignmentDashboard:
                     audio_data = self.storage_repo.download_blob_by_url(track['track_path'])
                     with tempfile.NamedTemporaryFile(mode="wb", delete=False) as temp_file:
                         temp_file.write(audio_data)
-                        recording_path = temp_file.name
+                        track_audio_path = temp_file.name
 
                     st.audio(audio_data, format='audio/m4a')
                     st.write("**Recording**")
-                    uploaded, badge_awarded, recording_id, recording_name = \
+                    uploaded, badge_awarded, recording_id, recording_audio_path = \
                         self.recording_uploader.upload(
                             session_id, org_id, user_id, track, bucket, selected_assignment['id'])
                     if uploaded:
                         with st.spinner("Please wait..."):
-                            distance, score, analysis = self.recording_uploader.analyze_recording(
-                                track, recording_path, recording_name)
+                            recording = self.recording_repo.get_recording(recording_id)
+                            distance, score = self.recording_uploader.analyze_recording(
+                                track, recording, track_audio_path, recording_audio_path)
                             self.recording_repo.update_score_and_analysis(
-                                recording_id, distance, score, analysis)
+                                recording_id, distance, score)
                         st.write(f"**Score**: {score}")
                         # Update assignment status
                         self.assignment_repo.update_assignment_status_by_detail(
@@ -114,10 +115,10 @@ class AssignmentDashboard:
                     with col2:
                         self._display_track_score_trends(track['id'], recordings)
                     st.write("")
-                    if recording_path:
-                        os.remove(recording_path)
-                    if recording_name:
-                        os.remove(recording_name)
+                    if track_audio_path:
+                        os.remove(track_audio_path)
+                    if recording_audio_path:
+                        os.remove(recording_audio_path)
                     st.write("")
 
             self.divider()
