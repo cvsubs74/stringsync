@@ -11,6 +11,7 @@ from streamlit_lottie import st_lottie
 from components.BadgeAwarder import BadgeAwarder
 from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
+from components.ScoreDisplay import ScoreDisplay
 from components.TimeConverter import TimeConverter
 from dashboards.AssignmentDashboard import AssignmentDashboard
 from dashboards.BadgesDashboard import BadgesDashboard
@@ -218,7 +219,7 @@ class StudentPortal(BasePortal, ABC):
                     recording = self.recording_repo.get_recording(recording_id)
                     distance, score = recording_uploader.analyze_recording(
                         track, recording, track_audio_path, recording_audio_path)
-                    self.display_score(score)
+                    ScoreDisplay(self.storage_repo).display_score(score)
                     self.recording_repo.update_score_and_analysis(
                         recording_id, distance, score)
 
@@ -509,21 +510,11 @@ class StudentPortal(BasePortal, ABC):
         with col2:
             st.markdown(f"{custom_style}<h2>Recording</h2>{divider}", unsafe_allow_html=True)
         with col3:
-            st.markdown(f"{custom_style}<h2>Analysis</h2>{divider}", unsafe_allow_html=True)
+            st.markdown(f"{custom_style}<h2>Score</h2>{divider}", unsafe_allow_html=True)
 
     @staticmethod
     def display_track_files(track_file):
         st.audio(track_file, format='audio/mp4')
-
-    @staticmethod
-    def display_score(score):
-        message = f"Score: {score}\n"
-        if score <= 3:
-            st.error(message)
-        elif score <= 7:
-            st.warning(message)
-        else:
-            st.success(message)
 
     def badges_dashboard(self):
         st.markdown(
