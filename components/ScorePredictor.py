@@ -64,7 +64,7 @@ class ScorePredictor:
         for track_name, track_training_data in grouped_data:
             # Check if sample size is less than 10
             # TODO: Setting
-            if len(track_training_data) < 5:
+            if len(track_training_data) < 10:
                 print(f"Skipping model generation for {track_name} due to insufficient data.")
                 continue
 
