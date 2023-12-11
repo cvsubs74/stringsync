@@ -77,7 +77,7 @@ class RecordingRepository:
     def get_recordings_by_user_id_and_track_id(
             self, user_id, track_id, timezone='America/Los_Angeles'):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
-        query = """SELECT id, user_id, blob_name, blob_url, timestamp, duration, track_id, score, remarks 
+        query = """SELECT id, user_id, blob_name, blob_url, timestamp, duration, track_id, score, remarks, is_training_data  
                    FROM recordings 
                    WHERE user_id = %s AND track_id = %s 
                    ORDER BY timestamp DESC;"""

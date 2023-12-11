@@ -24,17 +24,17 @@ class ScoreDisplay:
 
         # Determine the message based on the score range
         feedback = [
-            ("🐢 Just beginning, keep practicing!", 0, 0.9),
-            ("🌱 Small steps forward!", 1, 1.9),
-            ("🐾 Gaining ground!", 2, 2.9),
-            ("🚶‍♂️ On the right path!", 3, 3.9),
-            ("🏃‍♂️ Making good progress!", 4, 4.9),
-            ("🚀 Taking off!", 5, 5.9),
-            ("🌟 Shining brighter!", 6, 6.9),
-            ("🎯 Getting closer to the target!", 7, 7.9),
-            ("🏅 Almost there, excellent work!", 8, 8.9),
-            ("🏆 Outstanding achievement!", 9, 9.9),
-            ("🎉 Perfect score, incredible!", 10, 10)
+            ("🐢 Just beginning, keep practicing!", 0.00, 0.99),
+            ("🌱 Small steps forward!", 1.00, 1.99),
+            ("🐾 Gaining ground!", 2.00, 2.99),
+            ("🚶‍♂️ On the right path!", 3.00, 3.99),
+            ("🏃‍♂️ Making good progress!", 4.00, 4.99),
+            ("🚀 Taking off!", 5.00, 5.99),
+            ("🌟 Shining brighter!", 6.00, 6.99),
+            ("🎯 Getting closer to the target!", 7.00, 7.99),
+            ("🏅 Almost there, excellent work!", 8.00, 8.99),
+            ("🏆 Outstanding achievement!", 9.00, 9.99),
+            ("🎉 Perfect score, incredible!", 10.00, 10.00)
         ]
 
         for emoji, lower_bound, upper_bound in feedback:
@@ -44,7 +44,7 @@ class ScoreDisplay:
         else:
             message = "Score out of range."
 
-        if 8.5 <= score <= 10:
+        if 8.50 <= score <= 10.00:
             st.balloons()
             self.play_sound_effect(SoundEffect.AWARD)
 

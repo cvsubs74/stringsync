@@ -90,13 +90,19 @@ class ModelGenerationDashboard:
         # Create a dictionary to map track names to their IDs
         track_name_to_id = {track['name']: track['id'] for track in tracks}
 
-        # Add an "--All--" option to the selection list
-        track_options = list(track_name_to_id.keys())
+        # Add "--Select a Track--" and "--All--" options to the selection list
+        track_options = ["--Select a Track--"] + list(track_name_to_id.keys())
 
-        # Display multi-select widget for tracks
+        # Display selectbox widget for tracks
         selected_track_name = st.selectbox(
             "Select Tracks for viewing recordings", options=track_options)
-        selected_track_id = track_name_to_id[selected_track_name]
+
+        # Handle the case where no specific track is selected
+        if selected_track_name == "--Select a Track--":
+            st.info("Please select a track to view submissions.")
+            return
+
+        selected_track_id = track_name_to_id.get(selected_track_name, None)
 
         # Fetch and sort recordings
         submissions = self.portal_repo.get_recordings(

@@ -93,6 +93,10 @@ class ScorePredictor:
         features = pd.DataFrame([[level, offset, duration, distance]],
                                 columns=['level', 'offset', 'duration', 'distance'])
         predicted_score = model.predict(features)[0]
+
+        # Ensure the score is within 0 to 10 range
+        predicted_score = max(0, min(predicted_score, 10))
+
         # Format the score to 2 decimal places
         return True, round(predicted_score, 2)
 
@@ -105,6 +109,10 @@ class ScorePredictor:
         features = pd.DataFrame([[level, offset, duration, distance]],
                                 columns=['level', 'offset', 'duration', 'distance'])
         predicted_score = model.predict(features)[0]
+
+        # Ensure the score is within 0 to 10 range
+        predicted_score = max(0, min(predicted_score, 10))
+
         # Format the score to 2 decimal places
         return True, round(predicted_score, 2)
 

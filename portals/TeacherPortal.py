@@ -826,7 +826,8 @@ class TeacherPortal(BasePortal, ABC):
 
                     # Checkbox for using the recording for model training
                     use_for_training = st.checkbox("Use this recording for model training?",
-                                                   key=f"recording_training_{recording['id']}")
+                                                   key=f"recording_training_{recording['id']}",
+                                                   value=recording["is_training_data"])
 
                     # Display the timestamp, but it's not editable
                     timestamp = recording['timestamp'].strftime('%-I:%M %p | %b %d')
