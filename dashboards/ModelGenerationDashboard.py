@@ -116,7 +116,7 @@ class ModelGenerationDashboard:
                          f"{submission.get('track_name', 'N/A')} - " \
                          f"{submission.get('timestamp', 'N/A')}**"
         with st.expander(expander_label):
-            with st.form(key=f"submission_form_{submission['id']}"):
+            with st.form(key=f"submission_training_form_{submission['id']}"):
                 if submission['blob_url']:
                     filename = self.storage_repo.download_blob_by_name(submission['blob_name'])
                     st.markdown("<span style='font-size: 15px;'>Submission:</span>", unsafe_allow_html=True)
@@ -124,15 +124,15 @@ class ModelGenerationDashboard:
                 else:
                     st.write("No dashboards data available.")
 
-                score = st.text_input("Score", key=f"submission_score_{submission['id']}",
+                score = st.text_input("Score", key=f"submission_training_score_{submission['id']}",
                                       value=submission['score'])
 
-                st.text_area("Remarks", key=f"submission_remarks_{submission['id']}",
+                st.text_area("Remarks", key=f"submission_training_remarks_{submission['id']}",
                              value=submission['remarks'])
 
                 # Checkbox for using the recording for model training
                 use_for_training = st.checkbox("Use this recording for model training?",
-                                               key=f"submission_training_{submission['id']}",
+                                               key=f"submission_training_flag_{submission['id']}",
                                                value=submission['is_training_data'])
                 # Submit button for the form
                 if st.form_submit_button("Submit", type="primary"):

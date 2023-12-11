@@ -5,13 +5,14 @@ import streamlit as st
 from enums.SoundEffect import SoundEffect
 from repositories.StorageRepository import StorageRepository
 
+
 class ScoreDisplay:
     def __init__(self, storage_repo: StorageRepository):
         self.storage_repo = storage_repo
 
     def display_score(self, score):
         """
-        Displays the score and provides feedback based on the score value, divided into five bands, with emojis.
+        Displays the score and provides feedback based on the score value, divided into eleven bands, with emojis.
         :param score: The score to be displayed.
         """
         if score is None:
@@ -22,23 +23,32 @@ class ScoreDisplay:
         formatted_score = f"**{score:.2f}**"
 
         # Determine the message based on the score range
-        if 0 <= score <= 2:
-            message = f"You scored {formatted_score}\n\n🐌 Keep trying! Focus on the basics and practice regularly."
-            st.error(message)
-        elif 3 <= score <= 4:
-            message = f"You scored {formatted_score}\n\n🌱 You're getting there! Review the challenging parts and keep practicing."
-            st.warning(message)
-        elif 5 <= score <= 6:
-            message = f"You scored {formatted_score}\n\n📈 Good progress! Keep refining your skills."
-            st.info(message)
-        elif 7 <= score <= 8:
-            message = f"You scored {formatted_score}\n\n🎉 Great job! You're showing strong understanding and skill."
-            st.success(message)
-        elif 9 <= score <= 10:
-            message = f"You scored {formatted_score}\n\n🌟 Outstanding performance! Your dedication is truly paying off."
+        feedback = [
+            ("🐢 Just beginning, keep practicing!", 0, 0.9),
+            ("🌱 Small steps forward!", 1, 1.9),
+            ("🐾 Gaining ground!", 2, 2.9),
+            ("🚶‍♂️ On the right path!", 3, 3.9),
+            ("🏃‍♂️ Making good progress!", 4, 4.9),
+            ("🚀 Taking off!", 5, 5.9),
+            ("🌟 Shining brighter!", 6, 6.9),
+            ("🎯 Getting closer to the target!", 7, 7.9),
+            ("🏅 Almost there, excellent work!", 8, 8.9),
+            ("🏆 Outstanding achievement!", 9, 9.9),
+            ("🎉 Perfect score, incredible!", 10, 10)
+        ]
+
+        for emoji, lower_bound, upper_bound in feedback:
+            if lower_bound <= score <= upper_bound:
+                message = f"You scored {formatted_score}\n\n{emoji}"
+                break
+        else:
+            message = "Score out of range."
+
+        if 8.5 <= score <= 10:
             st.balloons()
             self.play_sound_effect(SoundEffect.AWARD)
-            st.success(message)
+
+        st.success(message)
 
     def get_sound_effect(self, sound_effect: SoundEffect):
         # Directory where sound effects are stored locally
