@@ -9,6 +9,7 @@ import streamlit as st
 from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
 from components.TimeConverter import TimeConverter
+from components.TrackScoringTrendsDisplay import TrackScoringTrendsDisplay
 from dashboards.ResourceDashboard import ResourceDashboard
 from repositories.AssignmentRepository import AssignmentRepository
 from repositories.RecordingRepository import RecordingRepository
@@ -94,7 +95,7 @@ class AssignmentDashboard:
                             recording = self.recording_repo.get_recording(recording_id)
                             distance, score = self.recording_uploader.analyze_recording(
                                 track, recording, track_audio_path, recording_audio_path)
-                            self.recording_repo.update_score_and_analysis(
+                            self.recording_repo.update_score_distance_analysis(
                                 recording_id, distance, score)
                         st.write(f"**Score**: {score}")
                         # Update assignment status
@@ -113,7 +114,7 @@ class AssignmentDashboard:
 
                     # Display the graph in the second column
                     with col2:
-                        self._display_track_score_trends(track['id'], recordings)
+                        TrackScoringTrendsDisplay().show(recordings)
                     st.write("")
                     if track_audio_path:
                         os.remove(track_audio_path)
@@ -229,34 +230,6 @@ class AssignmentDashboard:
             })
 
         return recordings
-
-    @staticmethod
-    def _display_track_score_trends(track_id, recordings):
-        if not recordings:
-            return
-
-        st.write("**Score Trends**")
-        # Convert recordings data to a DataFrame
-        df = pd.DataFrame(recordings)
-        df.sort_values(by='timestamp', inplace=True)
-
-        # Use the DataFrame index as x-axis
-        df.reset_index(inplace=True)
-
-        # Plotting the line graph for score trend
-        fig_line = px.line(
-            df,
-            x='index',
-            y='score',
-            title=f'',
-            labels={'index': 'Recordings', 'score': 'Score'}
-        )
-
-        # Set the y-axis to start from 0
-        fig_line.update_yaxes(range=[0, max(10, df['score'].max())])
-
-        # Adding the line graph to the Streamlit app
-        st.plotly_chart(fig_line, use_container_width=True)
 
     @staticmethod
     def divider():

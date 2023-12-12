@@ -809,6 +809,7 @@ class TeacherPortal(BasePortal, ABC):
             return
 
         for recording in recordings:
+            self.check_and_update_distance_and_score(recording)
             with st.expander(
                     f"Recording ID {recording['id']} - {recording['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}"):
                 if recording['blob_url']:
@@ -871,6 +872,7 @@ class TeacherPortal(BasePortal, ABC):
         expander_label = f"**{submission.get('user_name', 'N/A')} - " \
                          f"{submission.get('track_name', 'N/A')} - " \
                          f"{submission.get('timestamp', 'N/A')}**"
+        self.check_and_update_distance_and_score(submission)
         with st.expander(expander_label):
             with st.form(key=f"submission_form_{submission['id']}"):
                 if submission['track_path']:
@@ -914,6 +916,29 @@ class TeacherPortal(BasePortal, ABC):
                     if use_for_training:
                         self.track_repo.flag_model_rebuild(submission['track_id'])
                     st.success("Remarks/Score/Badge updated successfully.")
+
+    def check_and_update_distance_and_score(self, submission):
+        distance = submission['distance']
+        score = submission['score']
+        if submission['distance'] and submission['score']:
+            return
+
+        id = submission['id']
+        track_name = submission['track_name']
+        level = submission['level']
+        offset = submission['offset']
+        duration = submission['duration']
+        track_path = submission['track_path']
+        recording_path = submission['blob_url']
+        recording_name = f"recording_{id}"
+        if not distance:
+            self.storage_repo.download_blob(track_path, track_name)
+            self.storage_repo.download_blob(recording_path, recording_name)
+            distance, score = self.get_recording_uploader().analyze_recording_by_track(
+                track_name, level, offset, duration, track_name, recording_name)
+        self.recording_repo.update_score_distance_analysis(id, distance, score)
+        submission['distance'] = distance
+        submission['score'] = score
 
     def handle_remarks_and_badges(self, score, submission, remarks, badge, use_for_training):
         self.recording_repo.update_score_remarks_training(

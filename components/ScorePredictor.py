@@ -116,6 +116,41 @@ class ScorePredictor:
         # Format the score to 2 decimal places
         return True, round(predicted_score, 2)
 
+    def predict_score(self, track_name, level, offset, duration, distance):
+        print(track_name, level, offset, duration, distance)
+        # Predict score using both track-specific and generic models
+        is_track_model_score_available, track_model_score = self.predict_score_by_track_model(
+            track_name, level, offset, duration, distance)
+        is_generic_model_score_available, generic_model_score = self.predict_score_by_generic_model(
+            level, offset, duration, distance)
+
+        # Initialize variables to store total score and count of valid scores
+        total_score = 0
+        valid_scores_count = 0
+
+        # Add track model score if available
+        if is_track_model_score_available:
+            total_score += track_model_score
+            valid_scores_count += 1
+
+        # Add generic model score if available
+        if is_generic_model_score_available:
+            total_score += generic_model_score
+            valid_scores_count += 1
+
+        # Avoid division by zero and calculate the final score
+        if valid_scores_count > 0:
+            final_score = total_score / valid_scores_count
+            # Ensuring the score is within the range 0 to 10.00
+            final_score = max(0.00, min(final_score, 10.00))
+            # Formatting the score to have two decimal places
+            final_score = round(final_score, 2)
+        else:
+            # Handle case where no valid scores are available
+            final_score = None  # Or some default value based on your application's logic
+
+        return final_score
+
     def get_track_model_path(self, track_name):
         # Generate a model name based on the track name
         model_name = f"model_{track_name.replace(' ', '_').lower()}"

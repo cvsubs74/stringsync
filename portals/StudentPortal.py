@@ -1,7 +1,6 @@
 # Standard library imports
 import json
 import os
-import plotly.express as px
 # Third-party imports
 import pandas as pd
 import streamlit as st
@@ -13,6 +12,7 @@ from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
 from components.ScoreDisplay import ScoreDisplay
 from components.TimeConverter import TimeConverter
+from components.TrackScoringTrendsDisplay import TrackScoringTrendsDisplay
 from dashboards.AssignmentDashboard import AssignmentDashboard
 from dashboards.BadgesDashboard import BadgesDashboard
 from dashboards.HallOfFameDashboard import HallOfFameDashboard
@@ -219,47 +219,19 @@ class StudentPortal(BasePortal, ABC):
                     recording = self.recording_repo.get_recording(recording_id)
                     distance, score = recording_uploader.analyze_recording(
                         track, recording, track_audio_path, recording_audio_path)
-                    ScoreDisplay(self.storage_repo).display_score(score)
-                    self.recording_repo.update_score_and_analysis(
+                    self.recording_repo.update_score_distance_analysis(
                         recording_id, distance, score)
+                    ScoreDisplay(self.storage_repo).display_score(score)
 
         if badge_awarded:
             self.show_animations()
 
         if load_recordings:
             recordings = self.recordings(track['id'])
-            self._display_track_score_trends(track['id'], recordings)
+            TrackScoringTrendsDisplay().show(recordings)
 
         if uploaded:
             os.remove(recording_audio_path)
-
-    @staticmethod
-    def _display_track_score_trends(track_id, recordings):
-        if not recordings:
-            return
-
-        st.write("**Score Trends**")
-        # Convert recordings data to a DataFrame
-        df = pd.DataFrame(recordings)
-        df.sort_values(by='timestamp', inplace=True)
-
-        # Use the DataFrame index as x-axis
-        df.reset_index(inplace=True)
-
-        # Plotting the line graph for score trend
-        fig_line = px.line(
-            df,
-            x='index',
-            y='score',
-            title=f'',
-            labels={'index': 'Recordings', 'score': 'Score'}
-        )
-
-        # Set the y-axis to start from 0
-        fig_line.update_yaxes(range=[0, max(10, df['score'].max())])
-
-        # Adding the line graph to the Streamlit app
-        st.plotly_chart(fig_line, use_container_width=True)
 
     @staticmethod
     def display_recordings_header():

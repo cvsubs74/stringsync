@@ -261,7 +261,8 @@ class AssignmentRepository:
                 INNER JOIN assignment_details ad ON a.id = ad.assignment_id
                 INNER JOIN user_assignments ua ON ad.id = ua.assignment_detail_id
                 WHERE ua.user_id = %s
-                GROUP BY a.id, a.title;
+                GROUP BY a.id, a.title
+                ORDER BY a.due_date DESC;
             """
             cursor.execute(query, (user_id,))
             return cursor.fetchall()

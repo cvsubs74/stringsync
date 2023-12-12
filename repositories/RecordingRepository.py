@@ -74,19 +74,26 @@ class RecordingRepository:
         result = cursor.fetchone()
         return result[0] == 1
 
-    def get_recordings_by_user_id_and_track_id(
-            self, user_id, track_id, timezone='America/Los_Angeles'):
+    def get_recordings_by_user_id_and_track_id(self, user_id, track_id, timezone='America/Los_Angeles'):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
-        query = """SELECT id, user_id, blob_name, blob_url, timestamp, duration, track_id, score, remarks, is_training_data  
-                   FROM recordings 
-                   WHERE user_id = %s AND track_id = %s 
-                   ORDER BY timestamp DESC;"""
+        query = """
+                SELECT rec.id, rec.user_id, rec.blob_name, rec.blob_url, rec.timestamp, rec.duration, 
+                       rec.track_id, rec.score, rec.distance, rec.remarks, rec.is_training_data, 
+                       tr.name  AS track_name, tr.level, tr.offset, tr.track_path
+                FROM recordings rec
+                JOIN tracks tr ON rec.track_id = tr.id
+                WHERE rec.user_id = %s AND rec.track_id = %s 
+                ORDER BY rec.timestamp DESC;
+                """
         cursor.execute(query, (user_id, track_id))
         recordings = cursor.fetchall()
+
+        # Convert timestamp to local timezone
         for recording in recordings:
             local_timestamp = TimeConverter.convert_timestamp(
                 recording['timestamp'], timezone)
             recording['timestamp'] = local_timestamp
+
         return recordings
 
     def get_recordings_by_user_id_and_track_id_and_assignment_id(
@@ -161,7 +168,7 @@ class RecordingRepository:
         finally:
             cursor.close()
 
-    def update_score_and_analysis(
+    def update_score_distance_analysis(
             self,
             recording_id,
             distance,
