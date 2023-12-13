@@ -262,7 +262,7 @@ class RecordingRepository:
         FROM recordings r
         JOIN tracks t ON r.track_id = t.id
         WHERE r.user_id = %s AND r.timestamp between %s and %s
-        ORDER BY r.timestamp DESC
+        ORDER BY r.timestamp DESC 
         """
         start_date, end_date = time_frame.get_date_range()
         cursor.execute(query, (user_id, start_date, end_date))

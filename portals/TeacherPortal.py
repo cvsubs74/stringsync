@@ -1038,11 +1038,12 @@ class TeacherPortal(BasePortal, ABC):
 
         col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 0.3, 1, 2, 1.5])
 
+        selected_group_ids = None
         with col1:
             selected_groups = st.multiselect(
                 "Select Teams", group_options, key="team_dashboard_group_selector")
-
-        selected_group_ids = [group_name_to_id[group] for group in selected_groups]
+            if selected_groups:
+                selected_group_ids = [group_name_to_id[group] for group in selected_groups]
 
         with col2:
             options = [time_frame for time_frame in TimeFrame]
@@ -1056,7 +1057,7 @@ class TeacherPortal(BasePortal, ABC):
             )
         error_message = None
         # Apply actions to all selected groups
-        if selected_groups:
+        if selected_group_ids:
             with col4:
                 st.write("")
                 st.write("")
@@ -1069,7 +1070,7 @@ class TeacherPortal(BasePortal, ABC):
                     else:
                         with st.spinner("Please wait.."):
                             for group_id in selected_group_ids:
-                                self.badge_awarder.auto_award_badges(self.get_group_id(), timeframe)
+                                self.badge_awarder.auto_award_badges(group_id, timeframe)
                                 self.log_activity(self.get_activity_type(timeframe), group_id)
                     self.hall_of_fame_dashboard_builder.clear_cache()
 

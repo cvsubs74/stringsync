@@ -58,6 +58,7 @@ class StudentAssessmentDashboard:
 
             # Fetch data needed for the LLM to generate the assessment
             data = self.get_student_data(user_id, time_frame)
+            print(data)
             data = f"Student Name: {username}\nMusic Data:\n{data}"
 
             # Generate the assessment text with the LLM
@@ -333,11 +334,26 @@ class StudentAssessmentDashboard:
         achievements = self.user_achievement_repo.get_user_achievements_by_timeframe(
             user_id, time_frame)
         recordings = self.recording_repo.get_submissions_by_timeframe(user_id, time_frame)
+        # Define a list of fields to exclude
+        fields_to_exclude = ["recording_audio_url", "track_audio_url", "timestamp", "recording_id", "track_id", "id"]
+        # Create a new list without the URL fields
+        filtered_recordings = []
+        filtered_achievements = []
+        filtered_logs = []
+        for recording in recordings:
+            filtered_recording = {key: value for key, value in recording.items() if key not in fields_to_exclude}
+            filtered_recordings.append(filtered_recording)
+        for achievement in achievements:
+            filtered_achievement = {key: value for key, value in achievement.items() if key not in fields_to_exclude}
+            filtered_achievements.append(filtered_achievement)
+        for log in practice_logs:
+            filtered_log = {key: value for key, value in log.items() if key not in fields_to_exclude}
+            filtered_logs.append(filtered_log)
         # Combine all the data into a single dictionary
         student_data = {
-            'recordings': recordings,
-            'practice_logs': practice_logs,
-            'achievements': achievements
+            'recordings': filtered_recordings,
+            'practice_logs': filtered_logs,
+            'achievements': filtered_achievements
         }
 
         return student_data

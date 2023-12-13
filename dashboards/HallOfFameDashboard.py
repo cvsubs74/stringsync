@@ -95,11 +95,19 @@ class HallOfFameDashboard:
             st.write("")
 
     def get_winners(self, group_id, timeframe):
-        if "hall_of_fame_winners" not in st.session_state:
+        cache_key = f"hall_of_fame_winners_{group_id}_{timeframe}"
+
+        # Check if the cache is not set or if the cache is expired
+        if cache_key not in st.session_state:
             winners = self.portal_repo.get_winners(group_id, timeframe)
-            st.session_state["hall_of_fame_winners"] = winners
+
+            # Cache the results with a timestamp
+            st.session_state[cache_key] = {
+                "winners": winners,
+            }
         else:
-            winners = st.session_state["hall_of_fame_winners"]
+            winners = st.session_state[cache_key]["winners"]
+
         return winners
 
     @staticmethod

@@ -6,7 +6,7 @@ class RagaRepository:
     def __init__(self, connection):
         self.connection = connection
         #self.create_tables()
-        #self.create_seed_data()
+        self.create_seed_data()
 
     def create_tables(self):
         cursor = self.connection.cursor()
@@ -142,6 +142,13 @@ class RagaRepository:
             parent_raga="Kalyani",
             aarohanam='S R2 G3 P D2 S',
             avarohanam='S D2 P G3 R2 S'
+        )
+        self.add_raga(
+            name='Malahari',
+            is_melakarta=False,
+            parent_raga="Mayamalavagowla",
+            aarohanam='S R1 M1 P D1 S',
+            avarohanam='S D1 P M1 G3 R1 S'
         )
 
 

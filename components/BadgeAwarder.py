@@ -36,12 +36,12 @@ class BadgeAwarder:
         return badge_awarded
 
     def auto_award_badges(self, group_id, timeframe=TimeFrame.PREVIOUS_WEEK):
+        print(group_id, timeframe.get_date_range())
         # Retrieve weekly stats for all users in the group within the date range
         stats = self.portal_repo.get_group_stats(group_id, timeframe)
         # No data for the previous week
         if len(stats) == 0:
             return False
-
         # Iterate through each stat and check if the threshold is met
         for stat in stats:
             # Check if the category from stat is a valid badge and has a threshold
