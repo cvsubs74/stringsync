@@ -101,7 +101,7 @@ class ScorePredictor:
             if model:
                 y_pred_generic = model.predict(x_test)
                 metrics_generic = self.get_evaluation_metrics(y_test, y_pred_generic)
-                self.persist_model_performance(model_path, metrics_generic)
+                self.persist_model_performance(model_type.name, metrics_generic)
 
     @staticmethod
     def get_evaluation_metrics(y_true, y_pred):

@@ -1,4 +1,5 @@
 import tempfile
+from datetime import datetime
 
 import streamlit as st
 
@@ -38,7 +39,7 @@ class ModelGenerationDashboard:
 
     def build(self):
         # Button to trigger model generation
-        if st.button("Generate Models"):
+        if st.button("Generate Models", type="primary"):
             self.score_predictor.build_models()
             st.success("Model generation process completed.")
 
@@ -47,55 +48,69 @@ class ModelGenerationDashboard:
         self.show_model_performance()
 
     def show_model_performance(self):
-        # Fetch model performance data
-        model_performance_data = self.model_performance_repo.get_model_performance()
+        # Initialize an empty list to store performance data for all models
+        all_model_performance_data = []
 
-        if not model_performance_data:
+        for model_type in LearningModels:
+            model_name = model_type.value['name']
+            # Fetch model performance data
+            model_performance_data = self.model_performance_repo.get_model_performance(
+                model_name)
+
+            if model_performance_data:
+                # Append the performance data for this model to the consolidated list
+                all_model_performance_data.extend(model_performance_data)
+
+        if not all_model_performance_data:
             st.info("No model performance data available.")
             return
 
-        st.header("Model Performance Metrics")
-        list_builder = ListBuilder(column_widths=[25, 25, 25, 25])
-        list_builder.build_header(
-            column_names=["Model", "Mean Squared Error", "Mean Absolute Error", "R-squared score"])
-        # Display recent submission summary
-        for model_data in model_performance_data:
-            # Extract the specific fields from model_data
-            extracted_data = {
-                'model_name': model_data['model_name'],
-                'mse': model_data['mse'],
-                'mae': model_data['mae'],
-                'r2_score': model_data['r2_score']
-            }
+        # Display recent submission summary for all models
+        for model_type in LearningModels:
+            model_name = model_type.value['name']
+            model_performance_data = [data for data in all_model_performance_data if data['model_name'] == model_name]
 
-            # Pass the extracted data as a dictionary to the build_row method
-            list_builder.build_row(extracted_data)
+            if model_performance_data:
+                st.subheader(f"{model_type.value['description']}")
+                list_builder = ListBuilder(column_widths=[20, 20, 20, 20, 20])
+                list_builder.build_header(
+                    column_names=["Model", "Mean Squared Error", "Mean Absolute Error", "R-squared score", "Time"])
 
-        # Display visualizations
-        df = pd.DataFrame(model_performance_data)
+                for model_data in model_performance_data:
+                    # Extract the specific fields from model_data
+                    time = model_data['timestamp'].strftime('%-I:%M %p | %b %d') \
+                        if isinstance(model_data['timestamp'], datetime) else model_data['timestamp']
+                    extracted_data = {
+                        'model_name': model_data['model_name'],
+                        'mse': model_data['mse'],
+                        'mae': model_data['mae'],
+                        'r2_score': model_data['r2_score'],
+                        'time': time
+                    }
+
+                    # Pass the extracted data as a dictionary to the build_row method
+                    list_builder.build_row(extracted_data)
+
+            st.write("")
+
+        # Display consolidated visualizations using the DataFrame
+        df = pd.DataFrame(all_model_performance_data)
         self.display_performance_charts(df)
 
     def display_performance_charts(self, df):
-        # Filter data for visualization
-        track_model_df = df[df['model_name'].str.contains('model_')]
-        generic_model_df = df[df['model_name'] == 'generic_score_predictor']
+        # Visualize MSE over index in the first column
+        self.display_chart(df, 'mse', 'Mean Squared Error (MSE)')
 
-        # Visualize MSE for track models over time
-        st.markdown("#### Mean Squared Error (MSE) Over Time for Track Models")
-        self.display_chart(track_model_df, 'mse', 'Mean Squared Error (MSE)')
+        # Visualize MAE over index in the second column
+        self.display_chart(df, 'mae', 'Mean Absolute Error (MAE)')
 
-        # Visualize MAE for track models over time
-        st.markdown("#### Mean Absolute Error (MAE) Over Time for Track Models")
-        self.display_chart(track_model_df, 'mae', 'Mean Absolute Error (MAE)')
-
-        # Visualize R2 score for generic model over time
-        st.markdown("#### R² Score Over Time for Generic Model")
-        self.display_chart(generic_model_df, 'r2_score', 'R² Score')
+        # Visualize R2 score over index in the third column
+        self.display_chart(df, 'r2_score', 'R² Score')
 
     @staticmethod
     def display_chart(df, metric, title):
         import plotly.express as px
-        fig = px.line(df, x='timestamp', y=metric, color='model_name', title=title)
+        fig = px.line(df, x=df.index, y=metric, color='model_name', title=title)
         st.plotly_chart(fig, use_container_width=True)
 
     def test_model(self):

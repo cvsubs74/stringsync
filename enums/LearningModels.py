@@ -6,12 +6,12 @@ from models.RandomForestRegressorModelBuilder import RandomForestRegressorModelB
 
 class LearningModels(Enum):
     RandomForestRegressorScorePredictionModel = {
-        'name': 'RandomForestRegressorModelBuilder',
+        'name': 'RandomForestRegressorScorePredictionModel',
         'class': RandomForestRegressorModelBuilder,
         'description': 'Random Forest Regressor Score Prediction Model'
     }
     LinearRegressionScorePredictionModel = {
-        'name': 'LinearRegressionModelBuilder',
+        'name': 'LinearRegressionScorePredictionModel',
         'class': LinearRegressionModelBuilder,
         'description': 'Linear Regression Score Prediction Model'
     }

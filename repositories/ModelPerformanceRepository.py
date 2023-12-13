@@ -1,4 +1,5 @@
 import pymysql.cursors
+import pytz
 
 
 class ModelPerformanceRepository:
@@ -39,7 +40,8 @@ class ModelPerformanceRepository:
             self.connection.commit()
             return cursor.lastrowid
 
-    def get_model_performance(self, model_name=None):
+    def get_model_performance(self, model_name=None, timezone='America/Los_Angeles', ):
+        print(model_name)
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             if model_name:
                 cursor.execute("""
@@ -52,4 +54,11 @@ class ModelPerformanceRepository:
                     SELECT * FROM model_performance 
                     ORDER BY timestamp DESC;
                 """)
-            return cursor.fetchall()
+            metrics = cursor.fetchall()
+
+            for metric in metrics:
+                utc_timestamp = pytz.utc.localize(metric['timestamp'])
+                local_tz = pytz.timezone(timezone)
+                local_timestamp = utc_timestamp.astimezone(local_tz)
+                metric['timestamp'] = local_timestamp
+            return metrics
