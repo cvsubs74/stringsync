@@ -176,7 +176,7 @@ class RecordingRepository:
             analysis=None):
         cursor = self.connection.cursor()
         update_query = """UPDATE recordings SET score = %s, distance = %s, analysis = %s 
-                        WHERE id = %s;"""
+                          WHERE id = %s;"""
         cursor.execute(update_query, (score, distance, analysis, recording_id))
         self.connection.commit()
 

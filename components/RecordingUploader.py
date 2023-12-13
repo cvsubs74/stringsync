@@ -10,6 +10,7 @@ from components.ScorePredictor import ScorePredictor
 from components.TimeConverter import TimeConverter
 from enums.ActivityType import ActivityType
 from enums.Badges import UserBadges
+from repositories.ModelPerformanceRepository import ModelPerformanceRepository
 from repositories.RagaRepository import RagaRepository
 from repositories.RecordingRepository import RecordingRepository
 from repositories.ScorePredictionModelRepository import ScorePredictionModelRepository
@@ -26,6 +27,7 @@ class RecordingUploader:
                  user_activity_repo: UserActivityRepository,
                  user_session_repo: UserSessionRepository,
                  score_prediction_model_repo: ScorePredictionModelRepository,
+                 model_performance_repo: ModelPerformanceRepository,
                  storage_repo: StorageRepository,
                  badge_awarder: BadgeAwarder,
                  audio_processor: AudioProcessor,
@@ -36,6 +38,7 @@ class RecordingUploader:
         self.user_activity_repo = user_activity_repo
         self.user_session_repo = user_session_repo
         self.score_prediction_model_repo = score_prediction_model_repo
+        self.model_performance_repo = model_performance_repo
         self.storage_repo = storage_repo
         self.badge_awarder = badge_awarder
         self.audio_processor = audio_processor
@@ -127,8 +130,9 @@ class RecordingUploader:
         return distance, score
 
     def predict_score(self, track_name, level, offset, duration, distance):
-        return ScorePredictor(self.score_prediction_model_repo, self.track_repo, self.model_bucket).\
-            predict_score(track_name, level, offset, duration, distance)
+        return ScorePredictor(
+            self.score_prediction_model_repo, self.track_repo, self.model_performance_repo, self.model_bucket).\
+            predict_score(level, offset, duration, distance)
 
     @staticmethod
     def calculate_file_hash(recording_data):

@@ -29,6 +29,7 @@ from enums.SoundEffect import SoundEffect
 from enums.TimeFrame import TimeFrame
 from portals.BasePortal import BasePortal
 from components.AudioProcessor import AudioProcessor
+from repositories.ModelPerformanceRepository import ModelPerformanceRepository
 from repositories.ScorePredictionModelRepository import ScorePredictionModelRepository
 
 
@@ -36,6 +37,7 @@ class StudentPortal(BasePortal, ABC):
     def __init__(self):
         super().__init__()
         self.score_prediction_model_repo = ScorePredictionModelRepository(self.get_connection())
+        self.model_performance_repo = ModelPerformanceRepository(self.get_connection())
         self.badge_awarder = BadgeAwarder(
             self.settings_repo, self.recording_repo,
             self.user_achievement_repo, self.user_practice_log_repo,
@@ -46,7 +48,7 @@ class StudentPortal(BasePortal, ABC):
     def get_recording_uploader(self):
         return RecordingUploader(
             self.recording_repo, self.track_repo, self.raga_repo, self.user_activity_repo,
-            self.user_session_repo, self.score_prediction_model_repo,
+            self.user_session_repo, self.score_prediction_model_repo, self.model_performance_repo,
             self.storage_repo, self.badge_awarder, AudioProcessor(), self.get_models_bucket())
 
     def get_progress_dashboard(self):

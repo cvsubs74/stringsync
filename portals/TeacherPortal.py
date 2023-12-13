@@ -30,6 +30,7 @@ import streamlit as st
 import pandas as pd
 
 from enums.UserType import UserType
+from repositories.ModelPerformanceRepository import ModelPerformanceRepository
 from repositories.NotesRepository import NotesRepository
 from repositories.ScorePredictionModelRepository import ScorePredictionModelRepository
 
@@ -37,6 +38,7 @@ from repositories.ScorePredictionModelRepository import ScorePredictionModelRepo
 class TeacherPortal(BasePortal, ABC):
     def __init__(self):
         super().__init__()
+        self.model_performance_repo = ModelPerformanceRepository(self.get_connection())
         self.audio_processor = AudioProcessor()
         self.badge_awarder = BadgeAwarder(
             self.settings_repo, self.recording_repo,
@@ -89,10 +91,11 @@ class TeacherPortal(BasePortal, ABC):
     def get_model_generation_dashboard(self):
         return ModelGenerationDashboard(
             self.track_repo, self.recording_repo, self.portal_repo, self.storage_repo,
-            self.score_prediction_model_repo, self.audio_processor, self.get_models_bucket())
+            self.score_prediction_model_repo, self.model_performance_repo, self.audio_processor, self.get_models_bucket())
 
     def get_score_predictor(self):
-        return ScorePredictor(self.score_prediction_model_repo, self.track_repo, self.get_models_bucket())
+        return ScorePredictor(self.score_prediction_model_repo, self.track_repo,
+                              self.model_performance_repo, self.get_models_bucket())
 
     def get_notes_dashboard(self):
         return NotesDashboard(self.notes_repo)
@@ -100,7 +103,7 @@ class TeacherPortal(BasePortal, ABC):
     def get_recording_uploader(self):
         return RecordingUploader(
             self.recording_repo, self.track_repo, self.raga_repo, self.user_activity_repo,
-            self.user_session_repo, self.score_prediction_model_repo,
+            self.user_session_repo, self.score_prediction_model_repo, self.model_performance_repo,
             self.storage_repo, self.badge_awarder, AudioProcessor(), self.get_models_bucket())
 
     @staticmethod

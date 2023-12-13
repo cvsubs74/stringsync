@@ -1,10 +1,12 @@
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_val_score
 
+from models.BaseModelBuilder import BaseModelBuilder
 
-class RandomForestRegressorModelBuilder:
-    @staticmethod
-    def train(features, target):
+
+class RandomForestRegressorModelBuilder(BaseModelBuilder):
+
+    def train(self, features, target):
         model = RandomForestRegressor(random_state=42)
         # Cross-validation instead of a single split
         cv_scores = cross_val_score(
