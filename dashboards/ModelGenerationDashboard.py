@@ -2,7 +2,7 @@ import tempfile
 from datetime import datetime
 
 import streamlit as st
-
+import plotly.express as px
 from components.ListBuilder import ListBuilder
 from components.ScorePredictor import ScorePredictor
 from enums.LearningModels import LearningModels
@@ -51,7 +51,7 @@ class ModelGenerationDashboard:
         # Initialize an empty list to store performance data for all models
         all_model_performance_data = []
 
-        for model_type in LearningModels:
+        for model_type in LearningModels.get_enabled_models():
             model_name = model_type.value['name']
             # Fetch model performance data
             model_performance_data = self.model_performance_repo.get_model_performance(
@@ -66,7 +66,7 @@ class ModelGenerationDashboard:
             return
 
         # Display recent submission summary for all models
-        for model_type in LearningModels:
+        for model_type in LearningModels.get_enabled_models():
             model_name = model_type.value['name']
             model_performance_data = [data for data in all_model_performance_data if data['model_name'] == model_name]
 
@@ -97,15 +97,39 @@ class ModelGenerationDashboard:
         df = pd.DataFrame(all_model_performance_data)
         self.display_performance_charts(df)
 
-    def display_performance_charts(self, df):
-        # Visualize MSE over index in the first column
-        self.display_chart(df, 'mse', 'Mean Squared Error (MSE)')
+    @staticmethod
+    def display_performance_charts(df):
+        # Create a line chart for all three metrics, separated by model name
+        fig = px.line(df, x=df.index, y=['mse', 'mae', 'r2_score'], color_discrete_map={
+            'mse': 'blue', 'mae': 'green', 'r2_score': 'red'
+        }, facet_col='model_name', title='Performance Metrics Comparison')
 
-        # Visualize MAE over index in the second column
-        self.display_chart(df, 'mae', 'Mean Absolute Error (MAE)')
+        # Customize the chart layout
+        fig.update_layout(
+            xaxis_title='Index',
+            yaxis_title='Metric Value',
+        )
 
-        # Visualize R2 score over index in the third column
-        self.display_chart(df, 'r2_score', 'R² Score')
+        # Update the axis labels for clarity if needed
+        fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+
+        # Indicate optimal values for each metric
+        # Assuming optimal MSE and MAE are close to 0, and optimal R2 is 1
+        optimal_mse_mae = 0.5
+        optimal_r2 = 0.9
+
+        fig.add_hline(y=optimal_mse_mae, line_dash="dot",
+                      annotation_text="Optimal MSE/MAE",
+                      annotation_position="top left",
+                      line_color="blue")
+
+        fig.add_hline(y=optimal_r2, line_dash="dot",
+                      annotation_text="Optimal R2",
+                      annotation_position="bottom right",
+                      line_color="red")
+
+        # Display the chart
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
     def display_chart(df, metric, title):
@@ -144,7 +168,7 @@ class ModelGenerationDashboard:
             model_scores = {}
 
             # Iterate through LearningModels enum and predict scores for each model
-            for model_type in LearningModels:
+            for model_type in LearningModels.get_all_models():
                 model_name = model_type.value['name']
                 predicted_score = self.score_predictor.predict_score(
                     selected_track['level'], offset, duration, distance, model_name)

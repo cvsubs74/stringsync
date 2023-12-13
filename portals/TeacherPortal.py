@@ -921,8 +921,6 @@ class TeacherPortal(BasePortal, ABC):
                     st.success("Remarks/Score/Badge updated successfully.")
 
     def check_and_update_distance_and_score(self, submission):
-        distance = submission['distance']
-        score = submission['score']
         if submission['distance'] and submission['score']:
             return
 
@@ -934,12 +932,13 @@ class TeacherPortal(BasePortal, ABC):
         track_path = submission['track_path']
         recording_path = submission['blob_url']
         recording_name = f"recording_{id}"
-        if not distance:
-            self.storage_repo.download_blob(track_path, track_name)
-            self.storage_repo.download_blob(recording_path, recording_name)
-            distance, score = self.get_recording_uploader().analyze_recording_by_track(
-                track_name, level, offset, duration, track_name, recording_name)
+        self.storage_repo.download_blob(track_path, track_name)
+        self.storage_repo.download_blob(recording_path, recording_name)
+        distance, score = self.get_recording_uploader().analyze_recording_by_track(
+            track_name, level, offset, duration, track_name, recording_name)
         self.recording_repo.update_score_distance_analysis(id, distance, score)
+        os.remove(track_name)
+        os.remove(recording_name)
         submission['distance'] = distance
         submission['score'] = score
 

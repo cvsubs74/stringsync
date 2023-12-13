@@ -47,12 +47,14 @@ class ModelPerformanceRepository:
                 cursor.execute("""
                     SELECT * FROM model_performance 
                     WHERE model_name = %s
-                    ORDER BY timestamp DESC;
+                    ORDER BY timestamp DESC
+                    LIMIT 10;
                 """, (model_name,))
             else:
                 cursor.execute("""
                     SELECT * FROM model_performance 
-                    ORDER BY timestamp DESC;
+                    ORDER BY timestamp DESC
+                    LIMIT 10;
                 """)
             metrics = cursor.fetchall()
 

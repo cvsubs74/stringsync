@@ -1,4 +1,5 @@
 import pandas as pd
+import streamlit as st
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
@@ -52,15 +53,16 @@ class ScorePredictor:
         target = training_dataset['score']
 
         # Iterate through LearningModels enum and train each model
-        for model_type in LearningModels:
-            model_builder = model_type.get_model_builder()
-            model = model_builder.train(features, target)
+        for model_type in LearningModels.get_enabled_models():
+            with st.spinner(f"Building model {model_type.name}"):
+                model_builder = model_type.get_model_builder()
+                model = model_builder.train(features, target)
 
-            # Store the model (assuming you have a method for this)
-            blob_path = self.get_score_prediction_model_path(model_type.name)
-            model_path = self.model_storage_repo.save_model(blob_path, model)
+                # Store the model (assuming you have a method for this)
+                blob_path = self.get_score_prediction_model_path(model_type.name)
+                model_path = self.model_storage_repo.save_model(blob_path, model)
 
-            print(f"{model_type.value['description']} model saved at: {model_path}")
+                print(f"{model_type.value['description']} model saved at: {model_path}")
 
     def predict_score(self, level, offset, duration, distance,
                       model_name=LearningModels.RandomForestRegressorScorePredictionModel.name):
@@ -94,7 +96,7 @@ class ScorePredictor:
             random_state=42
         )
 
-        for model_type in LearningModels:
+        for model_type in LearningModels.get_enabled_models():
             # Evaluate models
             model_path = self.get_score_prediction_model_path(model_type.name)
             model = self.model_storage_repo.load_model(model_path)
