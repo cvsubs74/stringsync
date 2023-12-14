@@ -203,11 +203,13 @@ class StudentPortal(BasePortal, ABC):
         # Download and save the audio files to temporary locations
         with st.spinner("Please wait.."):
             track_audio_path = self.download_to_temp_file_by_url(track['track_path'])
+            track_ref_audio_path = self.download_to_temp_file_by_url(track['track_ref_path'])
         load_recordings = False
         col1, col2, col3 = st.columns([5, 5, 5])
         recording_uploader = self.get_recording_uploader()
         with col1:
-            self.display_track_files(track_audio_path)
+            self.display_track_files("Track", track_audio_path)
+            self.display_track_files("Reference Track", track_ref_audio_path)
             if st.button("Load Recordings", type="primary"):
                 load_recordings = True
 
@@ -487,7 +489,8 @@ class StudentPortal(BasePortal, ABC):
             st.markdown(f"{custom_style}<h2>Score</h2>{divider}", unsafe_allow_html=True)
 
     @staticmethod
-    def display_track_files(track_file):
+    def display_track_files(title, track_file):
+        st.write(title)
         st.audio(track_file, format='audio/mp4')
 
     def badges_dashboard(self):
