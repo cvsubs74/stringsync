@@ -29,7 +29,7 @@ class TrackRecommendationDashboard:
                 """, unsafe_allow_html=True)
 
         # Create columns for each track
-        cols = st.columns(3)
+        cols = st.columns(5)
         selected_track_name = None
 
         for i, track_info in enumerate(recommended_tracks):

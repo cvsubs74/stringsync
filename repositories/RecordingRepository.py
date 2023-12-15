@@ -125,16 +125,19 @@ class RecordingRepository:
 
     def get_track_statistics_by_user(self, user_id):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
-        query = """SELECT r.track_id, t.name as name,
-                          COALESCE(COUNT(*), 0) AS num_recordings, 
-                          COALESCE(MAX(r.score), 0) AS max_score, 
-                          COALESCE(MIN(r.score), 0) AS min_score, 
-                          COALESCE(AVG(r.score), 0) as avg_score
-                   FROM recordings r
-                   LEFT JOIN tracks t ON r.track_id = t.id
-                   WHERE r.user_id = %s 
-                   GROUP BY r.track_id, t.name;"""
-
+        query = """
+        SELECT r.track_id, t.name as name,
+               t.recommendation_threshold_score, 
+               COALESCE(COUNT(*), 0) AS num_recordings, 
+               COALESCE(MAX(r.score), 0) AS max_score, 
+               COALESCE(MIN(r.score), 0) AS min_score, 
+               COALESCE(AVG(r.score), 0) as avg_score
+        FROM recordings r
+        LEFT JOIN tracks t ON r.track_id = t.id
+        WHERE r.user_id = %s 
+        GROUP BY r.track_id, t.name, t.recommendation_threshold_score
+        ORDER BY t.level, t.ordering_rank;
+        """
         cursor.execute(query, (user_id,))
         results = cursor.fetchall()
         return results
@@ -142,14 +145,16 @@ class RecordingRepository:
     def get_all_track_statistics(self):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
         query = """
-        SELECT t.id AS track_id, t.name AS name, t.level AS level,
+        SELECT t.id AS track_id, t.name AS name, t.level AS level, 
+               t.recommendation_threshold_score, 
                COALESCE(COUNT(r.id), 0) AS num_recordings, 
                COALESCE(MAX(r.score), 0) AS max_score, 
                COALESCE(MIN(r.score), 0) AS min_score, 
                COALESCE(AVG(r.score), 0) AS avg_score
         FROM tracks t
         LEFT JOIN recordings r ON t.id = r.track_id
-        GROUP BY t.id, t.name, t.level;
+        GROUP BY t.id, t.name, t.level, t.recommendation_threshold_score
+        ORDER BY t.level, t.ordering_rank;
         """
         cursor.execute(query)
         results = cursor.fetchall()

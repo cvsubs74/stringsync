@@ -24,9 +24,12 @@ class TrackRepository:
                 offset INT,
                 track_hash VARCHAR(32),
                 requires_model_rebuild BOOLEAN DEFAULT FALSE,
+                recommendation_threshold_score DECIMAL(5, 2) DEFAULT 8.75 CHECK (recommendation_threshold_score >= 0 AND recommendation_threshold_score <= 10.00),
+                ordering_rank INT, 
                 FOREIGN KEY (ragam_id) REFERENCES ragas (id)
             );
         """)
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS tags (
                 id INT AUTO_INCREMENT PRIMARY KEY,

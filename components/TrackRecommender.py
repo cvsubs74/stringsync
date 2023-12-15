@@ -14,9 +14,6 @@ class TrackRecommender:
         # Retrieve statistics for all tracks from the database
         all_track_stats = self.recording_repo.get_all_track_statistics()
 
-        # Sort tracks by level and average score in ascending order
-        all_track_stats.sort(key=lambda x: (x['level'], x['avg_score']))
-
         # Initialize a dictionary to store user's average scores for each track
         user_avg_scores = {stat['name']: stat['avg_score'] for stat in user_track_stats}
 
@@ -24,21 +21,22 @@ class TrackRecommender:
         for track_stat in all_track_stats:
             track_name = track_stat['name']
             overall_avg_score = track_stat['avg_score']
+            recommendation_threshold_score = track_stat['recommendation_threshold_score']
 
             # Check if the user has no recordings for this track
             # or if the user's average score for this track is below the threshold
             user_avg_score = user_avg_scores.get(track_name, 0)
-            if track_name not in user_avg_scores or user_avg_score < 9:
+            if track_name not in user_avg_scores or user_avg_score < recommendation_threshold_score:
                 recommended_track_info = {
                     'name': track_name,
                     'user_avg_score': user_avg_score,
                     'overall_avg_score': overall_avg_score,
-                    'threshold_score': 8.75
+                    'threshold_score': recommendation_threshold_score
                 }
                 recommended_tracks.append(recommended_track_info)
 
-                # If we have recommended 3 tracks, break the loop
-                if len(recommended_tracks) == 3:
+                # If we have recommended 5 tracks, break the loop
+                if len(recommended_tracks) == 5:
                     break
 
         return recommended_tracks
