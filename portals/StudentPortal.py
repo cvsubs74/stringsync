@@ -23,6 +23,7 @@ from dashboards.ProgressDashboard import ProgressDashboard
 from dashboards.ResourceDashboard import ResourceDashboard
 from dashboards.StudentAssessmentDashboard import StudentAssessmentDashboard
 from dashboards.TeamDashboard import TeamDashboard
+from dashboards.TrackRecommendationDashboard import TrackRecommendationDashboard
 from enums.ActivityType import ActivityType
 from enums.Features import Features
 from enums.Settings import Portal
@@ -193,47 +194,8 @@ class StudentPortal(BasePortal, ABC):
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 24px;'> 🎙️ Record Your Tracks 🎙️</h2>", unsafe_allow_html=True)
-        # Get recommended tracks
-        recommended_tracks = self.recommend_tracks()
-        custom_style = "<style>h2 {font-size: 20px;}</style>"
-        divider = "<hr style='height:1px; margin-top: 0; border-width:0; background: lightblue;'>"
-        st.markdown(f"{custom_style}<h2>Personalized Track Recommendations</h2>", unsafe_allow_html=True)
-        st.markdown("""
-            <p>The following tracks have been selected based on your recording submissions and the scores you have obtained. 
-            Each track is chosen to help you develop specific skills and overcome challenges you've encountered in past sessions. 
-            Here's how you can make the most of these recommendations:</p>
-            <ul>
-                <li><b>Review each track</b>: Take a moment to look at the details of each recommended track. 
-                Notice the overall average score and threshold score to gauge the track's difficulty.</li>
-                <li><b>Start Practicing</b>: Choose a track that interests you and start practicing. 
-                Aim to surpass the threshold score to progress effectively.</li>
-            </ul>
-        """, unsafe_allow_html=True)
-        st.write("")
-        # Create columns for each track
-        cols = st.columns(3)
-        selected_track_name = None
-
-        for i, track_info in enumerate(recommended_tracks):
-            with cols[i]:
-                # Display track details with enhanced styling
-                st.markdown(
-                    f"<span style='color: black; font-size: 18px;'><b>Track Name:</b> {track_info['name']}</span>",
-                    unsafe_allow_html=True)
-                self.divider(2)
-                st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌟 <b>User Avg. Score:</b> {track_info['user_avg_score']}</span>",
-                    unsafe_allow_html=True)
-                st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌍 <b>Overall Avg. Score:</b> {track_info['overall_avg_score']}</span>",
-                    unsafe_allow_html=True)
-                st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🎯 <b>Threshold Score:</b> {track_info['threshold_score']}</span>",
-                    unsafe_allow_html=True)
-
-                # Display button with creative emoji for track selection
-                if st.button(f"🌟 Select 🌟", key=f"btn_{i}", type="primary"):
-                    selected_track_name = track_info['name']
+        selected_track_name = TrackRecommendationDashboard(self.recording_repo).display_recommendations(
+            self.get_user_id())
 
         st.write("")
         # Set the track based on the selected button
@@ -291,12 +253,6 @@ class StudentPortal(BasePortal, ABC):
 
         if uploaded:
             os.remove(recording_audio_path)
-
-    def recommend_tracks(self):
-        # Recommend tracks to work on next
-        track_recommender = TrackRecommender(self.recording_repo)
-        return track_recommender.recommend_tracks(
-            self.get_user_id())
 
     @staticmethod
     def display_recordings_header():
