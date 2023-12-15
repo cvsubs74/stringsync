@@ -1,14 +1,11 @@
 import datetime
 import hashlib
-import uuid
 
 import streamlit as st
-from streamlit_mic_recorder import mic_recorder
 
 from components.AudioProcessor import AudioProcessor
 from components.BadgeAwarder import BadgeAwarder
 from components.ScorePredictor import ScorePredictor
-from components.TimeConverter import TimeConverter
 from enums.ActivityType import ActivityType
 from enums.Badges import UserBadges
 from repositories.ModelPerformanceRepository import ModelPerformanceRepository
@@ -44,22 +41,6 @@ class RecordingUploader:
         self.badge_awarder = badge_awarder
         self.audio_processor = audio_processor
         self.model_bucket = model_bucket
-
-    @staticmethod
-    def record():
-        audio = mic_recorder(
-            start_prompt="Start Recording ⏺️",
-            stop_prompt="Stop Recording ⏹️",
-            just_once=False,
-            use_container_width=False,
-            callback=None,
-            args=(),
-            kwargs={},
-            key="recorder"
-        )
-
-        if audio:
-            st.audio(audio['bytes'])
 
     def upload(self, session_id, org_id, user_id,
                track, bucket, assignment_id=None, timezone='America/Los_Angeles'):
