@@ -14,48 +14,31 @@ class TrackRecommender:
         # Retrieve statistics for all tracks from the database
         all_track_stats = self.recording_repo.get_all_track_statistics()
 
-        # Separate tracks into different levels
-        level_tracks = {}
+        # Sort tracks by level and average score in ascending order
+        all_track_stats.sort(key=lambda x: (x['level'], x['avg_score']))
+
+        # Initialize a dictionary to store user's average scores for each track
+        user_avg_scores = {stat['name']: stat['avg_score'] for stat in user_track_stats}
+
+        # Iterate through tracks and recommend tracks based on the new conditions
         for track_stat in all_track_stats:
-            track_id = track_stat['track_id']
-            level = track_stat['level']  # Extract track level from the result
-            if level not in level_tracks:
-                level_tracks[level] = []
-            level_tracks[level].append(track_stat)
+            track_name = track_stat['name']
+            overall_avg_score = track_stat['avg_score']
 
-        # Sort tracks within each level based on user's score in ascending order
-        for level, tracks in level_tracks.items():
-            tracks.sort(key=lambda x: x['avg_score'])
+            # Check if the user has no recordings for this track
+            # or if the user's average score for this track is below the threshold
+            user_avg_score = user_avg_scores.get(track_name, 0)
+            if track_name not in user_avg_scores or user_avg_score < 9:
+                recommended_track_info = {
+                    'name': track_name,
+                    'user_avg_score': user_avg_score,
+                    'overall_avg_score': overall_avg_score,
+                    'threshold_score': 8.75
+                }
+                recommended_tracks.append(recommended_track_info)
 
-        # Determine the maximum number of tracks to recommend per level
-        max_tracks_per_level = 10  # You can adjust this as needed
-
-        # Calculate the user's overall average score
-        overall_avg_score = sum(track_stat['avg_score'] for track_stat in user_track_stats) / len(user_track_stats)
-
-        # Iterate through levels and recommend tracks
-        for level, tracks in level_tracks.items():
-            # Calculate the average score for tracks in this level
-            level_avg_score = sum(track_stat['avg_score'] for track_stat in tracks) / len(tracks)
-
-            # Check if the user has already worked on all tracks in this level
-            if len(tracks) == len([t for t in tracks if t['name'] in user_track_stats]):
-                continue  # Skip this level as the user has already worked on all tracks
-
-            # Get a list of unrecorded tracks in the same level
-            unrecorded_tracks_in_level = [track['name'] for track in tracks if track['name'] not in user_track_stats]
-            # Recommend track IDs from this level
-            num_to_recommend = min(max_tracks_per_level, len(unrecorded_tracks_in_level))
-            recommended_tracks.extend(unrecorded_tracks_in_level[:num_to_recommend])
-
-            # Check if the user's average score is below the overall average
-            if level_avg_score < overall_avg_score:
-                # Recommend additional track IDs from this level
-                num_to_recommend_extra = max_tracks_per_level - num_to_recommend
-                recommended_tracks.extend(
-                    unrecorded_tracks_in_level[num_to_recommend:num_to_recommend + num_to_recommend_extra])
-
-        # Finally, recommend the top 5 tracks from the combined list of all levels
-        recommended_tracks = recommended_tracks[:5]  # Recommend the top 5 from the final list
+                # If we have recommended 3 tracks, break the loop
+                if len(recommended_tracks) == 3:
+                    break
 
         return recommended_tracks
