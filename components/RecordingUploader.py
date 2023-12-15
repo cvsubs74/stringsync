@@ -3,6 +3,7 @@ import hashlib
 import uuid
 
 import streamlit as st
+from streamlit_mic_recorder import mic_recorder
 
 from components.AudioProcessor import AudioProcessor
 from components.BadgeAwarder import BadgeAwarder
@@ -43,6 +44,22 @@ class RecordingUploader:
         self.badge_awarder = badge_awarder
         self.audio_processor = audio_processor
         self.model_bucket = model_bucket
+
+    @staticmethod
+    def record():
+        audio = mic_recorder(
+            start_prompt="Start Recording ⏺️",
+            stop_prompt="Stop Recording ⏹️",
+            just_once=False,
+            use_container_width=False,
+            callback=None,
+            args=(),
+            kwargs={},
+            key="recorder"
+        )
+
+        if audio:
+            st.audio(audio['bytes'])
 
     def upload(self, session_id, org_id, user_id,
                track, bucket, assignment_id=None, timezone='America/Los_Angeles'):
@@ -131,7 +148,7 @@ class RecordingUploader:
 
     def predict_score(self, track_name, level, offset, duration, distance):
         return ScorePredictor(
-            self.score_prediction_model_repo, self.track_repo, self.model_performance_repo, self.model_bucket).\
+            self.score_prediction_model_repo, self.track_repo, self.model_performance_repo, self.model_bucket). \
             predict_score(level, offset, duration, distance)
 
     @staticmethod
@@ -147,4 +164,3 @@ class RecordingUploader:
 
     def get_audio_distance(self, track_file, student_path):
         return self.audio_processor.compare_audio(track_file, student_path)
-

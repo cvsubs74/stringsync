@@ -12,6 +12,7 @@ from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
 from components.ScoreDisplay import ScoreDisplay
 from components.TimeConverter import TimeConverter
+from components.TrackRecommender import TrackRecommender
 from components.TrackScoringTrendsDisplay import TrackScoringTrendsDisplay
 from dashboards.AssignmentDashboard import AssignmentDashboard
 from dashboards.BadgesDashboard import BadgesDashboard
@@ -194,8 +195,9 @@ class StudentPortal(BasePortal, ABC):
             f"-size: 24px;'> 🎙️ Record Your Tracks 🎙️</h2>", unsafe_allow_html=True)
         self.divider()
         track = self.filter_tracks()
+
+        self.recommend_tracks()
         if not track:
-            st.info("No tracks found.")
             return
 
         self.create_track_headers()
@@ -236,6 +238,20 @@ class StudentPortal(BasePortal, ABC):
 
         if uploaded:
             os.remove(recording_audio_path)
+
+    def recommend_tracks(self):
+        # Recommend tracks to work on next
+        track_recommender = TrackRecommender(self.recording_repo)
+        recommended_tracks = track_recommender.recommend_tracks(
+            self.get_user_id())
+        if not recommended_tracks:
+            return
+
+        custom_style = "<style>h2 {font-size: 20px;}</style>"
+        divider = "<hr style='height:1px; margin-top: 0; border-width:0; background: lightblue;'>"
+        st.markdown(f"{custom_style}<h2>Recommendations</h2>{divider}", unsafe_allow_html=True)
+        # Check if there are recommended tracks and display them as comma-separated text
+        st.info("\n".join([f"- {track}" for track in recommended_tracks]))
 
     @staticmethod
     def display_recordings_header():

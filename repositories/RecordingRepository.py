@@ -139,6 +139,22 @@ class RecordingRepository:
         results = cursor.fetchall()
         return results
 
+    def get_all_track_statistics(self):
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+        query = """
+        SELECT t.id AS track_id, t.name AS name, t.level AS level,
+               COALESCE(COUNT(r.id), 0) AS num_recordings, 
+               COALESCE(MAX(r.score), 0) AS max_score, 
+               COALESCE(MIN(r.score), 0) AS min_score, 
+               COALESCE(AVG(r.score), 0) AS avg_score
+        FROM tracks t
+        LEFT JOIN recordings r ON t.id = r.track_id
+        GROUP BY t.id, t.name, t.level;
+        """
+        cursor.execute(query)
+        results = cursor.fetchall()
+        return results
+
     def get_unique_tracks_by_user(self, user_id):
         cursor = self.connection.cursor()
         query = """SELECT DISTINCT track_id FROM recordings WHERE user_id = %s;"""
