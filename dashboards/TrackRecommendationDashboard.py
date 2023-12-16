@@ -36,7 +36,7 @@ class TrackRecommendationDashboard:
             with cols[i]:
                 # Display track details with enhanced styling
                 st.markdown(
-                    f"<span style='color: black; font-size: 18px;'><b>{track_info['name']}</b></span>",
+                    f"<span style='color: black; font-size: 17px;'><b>{track_info['name']}</b></span>",
                     unsafe_allow_html=True)
                 self.divider(2)
                 st.markdown(
@@ -69,6 +69,7 @@ class TrackRecommendationDashboard:
     @staticmethod
     def divider(height=1):
         """Utility function to create a divider with specified height."""
-        st.markdown(f"<hr style='height:{height}px; margin-top: 0;  margin-bottom: 0; border-width:0; background: lightblue;'>",
+        st.markdown(f"<hr style='height:{height}px; "
+                    f"margin-top: 0;  margin-bottom: 0; border-width:0; background: lightblue;'>",
                     unsafe_allow_html=True)
 
