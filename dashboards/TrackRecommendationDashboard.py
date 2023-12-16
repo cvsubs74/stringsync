@@ -14,7 +14,7 @@ class TrackRecommendationDashboard:
         recommended_tracks = self.track_recommender.recommend_tracks(user_id)
         # Style and divider
         custom_style = "<style>h2 {font-size: 20px;}</style>"
-        st.markdown(f"{custom_style}<h2>Personalized Track Recommendations</h2>", unsafe_allow_html=True)
+        st.markdown(f"{custom_style}<h2>Track Recommendations</h2>", unsafe_allow_html=True)
         st.markdown("""
                     <p>The following tracks have been selected based on your recording submissions and the scores you have obtained. 
                     Each track is chosen to help you develop specific skills and overcome challenges you've encountered in past sessions. 
@@ -40,11 +40,22 @@ class TrackRecommendationDashboard:
                     unsafe_allow_html=True)
                 self.divider(2)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌟 <b>Your Avg. Score:</b> {track_info['user_avg_score']}</span>",
+                    f"<span style='color: black; font-size: 16px;'>🌟 <b>Your Avg. Score:</b> "
+                    f"{track_info['user_avg_score']}</span>",
                     unsafe_allow_html=True)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌍 <b>Overall Avg. Score:</b> {track_info['overall_avg_score']}</span>",
+                    f"<span style='color: black; font-size: 16px;'>🌟 <b>Your Top Score:</b> "
+                    f"{track_info['user_max_score']}</span>",
                     unsafe_allow_html=True)
+                st.markdown(
+                    f"<span style='color: black; font-size: 16px;'>🌍 <b>Overall Avg. Score:</b> "
+                    f"{track_info['overall_avg_score']}</span>",
+                    unsafe_allow_html=True)
+                st.markdown(
+                    f"<span style='color: black; font-size: 16px;'>🌍 <b>Top Score:</b> "
+                    f"{track_info['overall_max_score']}</span>",
+                    unsafe_allow_html=True)
+
                 st.markdown(
                     f"<span style='color: black; font-size: 16px;'>🎯 <b>Threshold Avg. Score:</b> {track_info['threshold_score']}</span>",
                     unsafe_allow_html=True)
