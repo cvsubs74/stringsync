@@ -231,9 +231,10 @@ class StudentPortal(BasePortal, ABC):
                 load_recordings = True
 
         with col2:
-            uploaded, badge_awarded, recording_id, recording_audio_path = recording_uploader.upload(
-                self.get_session_id(), self.get_org_id(),
-                self.get_user_id(), track, self.get_recordings_bucket())
+            uploaded, badge_awarded, recording_id, recording_audio_path = \
+                recording_uploader.upload(
+                    self.get_session_id(), self.get_org_id(),
+                    self.get_user_id(), track, self.get_recordings_bucket())
         with col3:
             if uploaded:
                 with st.spinner("Please wait..."):

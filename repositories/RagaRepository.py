@@ -150,6 +150,13 @@ class RagaRepository:
             aarohanam='S R1 M1 P D1 S',
             avarohanam='S D1 P M1 G3 R1 S'
         )
+        self.add_raga(
+            name='Saraswati',
+            is_melakarta=False,
+            parent_raga="Hemavathi",
+            aarohanam='S R2 M2 P D2 S',
+            avarohanam='S N2 D2 P M2 R2 S'
+        )
 
 
 
