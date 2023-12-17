@@ -134,7 +134,7 @@ class RecordingRepository:
                COALESCE(AVG(r.score), 0) as avg_score
         FROM recordings r
         LEFT JOIN tracks t ON r.track_id = t.id
-        WHERE r.user_id = %s 
+        WHERE r.user_id = %s and r.score < 10.00
         GROUP BY r.track_id, t.name, t.recommendation_threshold_score
         ORDER BY t.level, t.ordering_rank;
         """
@@ -153,6 +153,7 @@ class RecordingRepository:
                COALESCE(AVG(r.score), 0) AS avg_score
         FROM tracks t
         LEFT JOIN recordings r ON t.id = r.track_id
+        WHERE r.score < 10.00
         GROUP BY t.id, t.name, t.level, t.recommendation_threshold_score
         ORDER BY t.level, t.ordering_rank;
         """

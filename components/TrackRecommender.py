@@ -31,7 +31,7 @@ class TrackRecommender:
             user_max_score = round(user_max_scores.get(track_name, 0), 2)
             if track_name not in user_avg_scores or user_avg_score < recommendation_threshold_score:
                 recommended_track_info = {
-                    'name': track_name,
+                    'track_name': track_name,
                     'user_avg_score': user_avg_score,
                     'user_max_score': user_max_score,
                     'overall_avg_score': overall_avg_score,

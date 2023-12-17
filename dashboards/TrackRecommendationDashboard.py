@@ -27,7 +27,7 @@ class TrackRecommendationDashboard:
                         Consistently scoring high on the track is key to surpassing the threshold average score, reflecting steady improvement and mastery.</li>
                     </ul>
                 """, unsafe_allow_html=True)
-
+        st.write("")
         # Create columns for each track
         cols = st.columns(5)
         selected_track_name = None
@@ -36,7 +36,7 @@ class TrackRecommendationDashboard:
             with cols[i]:
                 # Display track details with enhanced styling
                 st.markdown(
-                    f"<span style='color: black; font-size: 17px;'><b>{track_info['name']}</b></span>",
+                    f"<span style='color: black; font-size: 17px;'><b>{track_info['track_name']}</b></span>",
                     unsafe_allow_html=True)
                 self.divider(2)
                 st.markdown(
@@ -48,11 +48,11 @@ class TrackRecommendationDashboard:
                     f"{track_info['user_max_score']}</span>",
                     unsafe_allow_html=True)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌍 <b>Overall Avg. Score:</b> "
+                    f"<span style='color: black; font-size: 16px;'>⭐ <b>Overall Avg. Score:</b> "
                     f"{track_info['overall_avg_score']}</span>",
                     unsafe_allow_html=True)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌍 <b>Top Score:</b> "
+                    f"<span style='color: black; font-size: 16px;'>⭐ <b>Top Score:</b> "
                     f"{track_info['overall_max_score']}</span>",
                     unsafe_allow_html=True)
 
@@ -62,9 +62,9 @@ class TrackRecommendationDashboard:
 
                 # Display button with creative emoji for track selection
                 if st.button(f"🌟 Select 🌟", key=f"btn_{i}", type="primary"):
-                    selected_track_name = track_info['name']
+                    selected_track_name = track_info['track_name']
 
-        return selected_track_name
+        return selected_track_name, recommended_tracks
 
     @staticmethod
     def divider(height=1):

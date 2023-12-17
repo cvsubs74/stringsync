@@ -194,26 +194,19 @@ class StudentPortal(BasePortal, ABC):
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 24px;'> 🎙️ Record Your Tracks 🎙️</h2>", unsafe_allow_html=True)
-        selected_track_name = TrackRecommendationDashboard(self.recording_repo).display_recommendations(
-            self.get_user_id())
-
+        selected_track_name, recommended_tracks = TrackRecommendationDashboard(
+            self.recording_repo).display_recommendations(self.get_user_id())
         st.write("")
         # Set the track based on the selected button
-        track = None
-        if selected_track_name:
-            track = self.track_repo.get_track_by_name(selected_track_name)
-
-        if not track:
-            track = self.filter_tracks()
-        else:
-            st.button("Show filters")
-
+        track = self.filter_tracks(selected_track_name)
         if not track:
             st.info("Please select a track to continue.")
             return
 
-        if not selected_track_name:
-            selected_track_name = track['track_name']
+        selected_track_name = track['track_name']
+        is_enable_recording = False
+        if self.is_track_recommended(track, recommended_tracks):
+            is_enable_recording = True
 
         self.create_track_headers()
 
@@ -234,7 +227,8 @@ class StudentPortal(BasePortal, ABC):
             uploaded, badge_awarded, recording_id, recording_audio_path = \
                 recording_uploader.upload(
                     self.get_session_id(), self.get_org_id(),
-                    self.get_user_id(), track, self.get_recordings_bucket())
+                    self.get_user_id(), track, self.get_recordings_bucket(),
+                    is_enable_recording=is_enable_recording)
         with col3:
             if uploaded:
                 with st.spinner("Please wait..."):
@@ -254,6 +248,11 @@ class StudentPortal(BasePortal, ABC):
 
         if uploaded:
             os.remove(recording_audio_path)
+
+    @staticmethod
+    def is_track_recommended(track, recommended_tracks):
+        return any(track['track_name'] == recommended_track['track_name']
+                   for recommended_track in recommended_tracks)
 
     @staticmethod
     def display_recordings_header():
@@ -436,7 +435,7 @@ class StudentPortal(BasePortal, ABC):
         else:
             st.info("Please wait for your teacher to assign you to a team!!")
 
-    def filter_tracks(self):
+    def filter_tracks(self, track_name):
         ragas = self.raga_repo.get_all_ragas()
         filter_options = self.fetch_filter_options(ragas)
 
@@ -446,18 +445,15 @@ class StudentPortal(BasePortal, ABC):
         level = col1.selectbox("Filter by Level", ["All"] + filter_options["Level"])
         raga = col2.selectbox("Filter by Ragam", ["All"] + filter_options["Ragam"])
         tags = col3.multiselect("Filter by Tags", ["All"] + filter_options["Tags"])
-
         tracks = self.track_repo.search_tracks(
             raga=None if raga == "All" else raga,
             level=None if level == "All" else level,
             tags=None if tags == ["All"] else tags
         )
-
         if not tracks:
             return None
 
-        selected_track_name = self.get_selected_track_name(tracks)
-
+        selected_track_name = self.get_selected_track_name(tracks, track_name)
         # Update the last selected track in session state
         if st.session_state['last_selected_track'] != selected_track_name and \
                 selected_track_name != "Select a Track":
@@ -485,9 +481,23 @@ class StudentPortal(BasePortal, ABC):
         }
 
     @staticmethod
-    def get_selected_track_name(tracks):
+    def get_selected_track_name(tracks, default_track_name):
         track_names = [track['track_name'] for track in tracks]
-        return st.selectbox("Select a Track", ["Select a Track"] + track_names, index=0)
+
+        # Initialize or get the current state
+        if 'selected_track_name' not in st.session_state or default_track_name:
+            st.session_state.selected_track_name = default_track_name if default_track_name else "Select a Track"
+
+        # Determine the default index
+        default_index = track_names.index(
+            st.session_state.selected_track_name) + 1 if st.session_state.selected_track_name in track_names else 0
+
+        # Update the selected track based on user input
+        st.session_state.selected_track_name = st.selectbox("Select a Track", ["Select a Track"] + track_names,
+                                                            index=default_index)
+
+        print(default_track_name, st.session_state.selected_track_name)
+        return st.session_state.selected_track_name
 
     @staticmethod
     def get_selected_track_details(tracks, selected_track_name):
@@ -615,3 +625,4 @@ class StudentPortal(BasePortal, ABC):
         if 11 <= (n % 100) <= 13:
             suffix = 'th'
         return str(n) + suffix
+

@@ -153,9 +153,9 @@ class TrackRepository:
         count = cursor.fetchone()[0]
         return count > 0
 
-    def search_tracks(self, raga=None, level=None, tags=None, limit=100):
+    def search_tracks(self, name=None, raga=None, level=None, tags=None, limit=100):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
-        # Include ragas.name in the SELECT clause to ensure it's always returned
+
         query = """
             SELECT 
                 tracks.id, 
@@ -179,6 +179,9 @@ class TrackRepository:
             joins.append("JOIN tags ON track_tags.tag_id = tags.id")
 
         where_clauses = []
+        if name:
+            where_clauses.append("tracks.name = %s")
+            params.append(f"{name}")
         if raga:
             where_clauses.append("ragas.name = %s")
             params.append(raga)

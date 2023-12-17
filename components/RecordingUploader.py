@@ -43,7 +43,19 @@ class RecordingUploader:
         self.model_bucket = model_bucket
 
     def upload(self, session_id, org_id, user_id,
-               track, bucket, assignment_id=None, timezone='America/Los_Angeles'):
+               track, bucket, assignment_id=None, timezone='America/Los_Angeles',
+               is_enable_recording=True):
+        if not is_enable_recording:
+            st.markdown("""
+                            <div style="color: grey; font-size: 18px; text-align: left;">
+                                🎵 Choose one of the recommended tracks above you and record! 🎤<br>
+                                🌟 And feel free to explore and listen to other cool tracks too! 🕵️‍♂️<br> 
+                                🎵 Every track is a new adventure! 🚀
+                            </div>
+                        """, unsafe_allow_html=True)
+
+            return False, False, -1, None
+
         track_id = track["id"]
         if assignment_id:
             form_key = f"recording_upload_{track['id'] - assignment_id}"
