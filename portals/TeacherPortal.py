@@ -606,12 +606,12 @@ class TeacherPortal(BasePortal, ABC):
         if not selected_tracks:
             return
 
-        list_builder = ListBuilder(column_widths=[20, 20, 20, 20, 20])
+        list_builder = ListBuilder(column_widths=[16.66, 16.66, 16.66, 16.66, 16.66, 16.66])
         list_builder.build_header(
-            column_names=["Track Name", "Audio", "Ragam", "Level", "Description"])
+            column_names=["Track Name", "Audio", "Ref Audio", "Ragam", "Level", "Description"])
 
         for track in selected_tracks:
-            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
+            col1, col2, col3, col4, col5, col6 = st.columns([1, 1, 1, 1, 1, 1])
             row_data = {
                 "Track Name": track['track_name'],
                 "Ragam": track['ragam'],
@@ -629,15 +629,22 @@ class TeacherPortal(BasePortal, ABC):
             col2.audio(audio_file_path, format='dashboards/m4a')
 
             col3.write("")
-            col3.markdown(
-                f"<div style='padding-top:12px;color:black;font-size:14px;text-align:left'>{row_data['Ragam']}</div>",
-                unsafe_allow_html=True)
+            blob_url = track['track_ref_path']
+            audio_ref_file_path = self.storage_repo.download_blob_by_url(blob_url)
+            col3.audio(audio_ref_file_path, format='dashboards/m4a')
+
             col4.write("")
             col4.markdown(
-                f"<div style='padding-top:12px;color:black;font-size:14px;text-align:left'>{row_data['Level']}</div>",
+                f"<div style='padding-top:12px;color:black;font-size:14px;text-align:left'>{row_data['Ragam']}</div>",
                 unsafe_allow_html=True)
+
             col5.write("")
             col5.markdown(
+                f"<div style='padding-top:12px;color:black;font-size:14px;text-align:left'>{row_data['Level']}</div>",
+                unsafe_allow_html=True)
+
+            col6.write("")
+            col6.markdown(
                 f"<div style='padding-top:12px;color:black;font-size:14px;text-align:left'>{row_data['Description']}</div>",
                 unsafe_allow_html=True)
 
