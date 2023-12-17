@@ -90,7 +90,7 @@ class RecordingUploader:
                     # Check for duplicates
                     if self.recording_repo.is_duplicate_recording(user_id, track_id, file_hash):
                         st.error("You have already uploaded this recording.")
-                        return "", -1, False, original_timestamp
+                        return False, False, -1, None
 
                     # Upload the recording to storage repo and recording repo
                     recording_audio_path, url, recording_id = self.add_recording(
