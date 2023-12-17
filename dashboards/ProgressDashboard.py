@@ -13,6 +13,8 @@ from repositories.UserPracticeLogRepository import UserPracticeLogRepository
 import pandas as pd
 import plotly.express as px
 
+from repositories.UserRepository import UserRepository
+
 
 class ProgressDashboard:
     def __init__(self,
@@ -21,21 +23,23 @@ class ProgressDashboard:
                  user_achievement_repo: UserAchievementRepository,
                  user_practice_log_repo: UserPracticeLogRepository,
                  track_repo: TrackRepository,
-                 assignment_repo: AssignmentRepository):
+                 assignment_repo: AssignmentRepository,
+                 user_repo: UserRepository):
         self.settings_repo = settings_repo
         self.recording_repo = recording_repo
         self.user_achievement_repo = user_achievement_repo
         self.user_practice_log_repo = user_practice_log_repo
         self.track_repo = track_repo
         self.assignment_repo = assignment_repo
+        self.user_repo = user_repo
 
-    def build(self, user_id):
+    def build(self, user_id, group_id):
         with st.spinner("Please wait.."):
             tracks = self.get_tracks(user_id)
             if len(tracks) == 0:
                 st.info("Please wait for lessons to be available.")
                 return
-            self.show_recording_stats(user_id, tracks)
+            self.show_recording_stats(user_id, group_id, tracks)
 
     def show_assignment_stats(self, user_id):
         # Retrieve assignment stats for the specific user
@@ -94,16 +98,18 @@ class ProgressDashboard:
 
         return track_details
 
-    def show_recording_stats(self, user_id, tracks):
-        track_recommender = TrackRecommender(self.recording_repo)
+    def show_recording_stats(self, user_id, group_id, tracks):
+        track_recommender = TrackRecommender(self.recording_repo, self.user_repo)
         recommended_tracks = track_recommender.recommend_tracks(user_id)
+        group_tracks = track_recommender.get_top_common_tracks_for_group(group_id)
         recommended_track_names = [track['track_name'] for track in recommended_tracks]
 
-        column_widths = [20, 16, 16, 16, 16, 16]
+        column_widths = [18, 7, 15, 15, 15, 15, 15]
         list_builder = ListBuilder(column_widths)
 
         list_builder.build_header(
-            column_names=["Track", "Number of Recordings", "Average Score", "Threshold", "Min Score", "Max Score"])
+            column_names=["Track", "Level", "Number of Recordings", "Average Score", "Threshold", "Min Score",
+                          "Max Score"])
 
         # Define margin as 80% of the threshold
         margin = float(Decimal(0.8))
@@ -111,6 +117,7 @@ class ProgressDashboard:
         # Define the criteria for changing the row color
         criteria_colors = [
             (lambda row: row['is_recommended'], "#ADD8E6"),
+            (lambda row: row['is_group_track'], "#B0E0E6"),
             (lambda row: float(row['Average Score']) >= float(row['Threshold']), "#93E353"),
             (lambda row: float(row['Threshold']) * margin <= float(row['Average Score']) < float(row['Threshold']),
              "#EAE185"),
@@ -119,16 +126,29 @@ class ProgressDashboard:
         ]
 
         for track_detail in tracks:
-            is_recommended = track_detail['track']['name'] in recommended_track_names
-            recommended_icon = "🔷" if is_recommended else "&nbsp;" * 5
+            track_name = track_detail['track']['name']
+            is_recommended = track_name in recommended_track_names
+            is_group_track = track_name in group_tracks
+
+            # Icon logic with fixed length
+            icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 2  # Initialize with two spaces (or as needed for alignment)
+            if is_recommended:
+                icons[0] = "🔷"
+            if is_group_track:
+                icons[1] = "🌐"
+
+            icon_str = "".join(icons)  # Join the icons or spaces into a single string
+
             row_data = {
-                "Track": f"{recommended_icon} {track_detail['track']['name']}",
+                "Track": f"{icon_str} {track_name}",
+                "Level": track_detail['track']['level'],
                 "Number of Recordings": track_detail['num_recordings'],
                 "Average Score": round(track_detail['avg_score'], 2),
                 "Threshold": round(track_detail['recommendation_threshold_score'], 2),
                 "Min Score": track_detail['min_score'],
                 "Max Score": track_detail['max_score'],
-                "is_recommended": is_recommended  # Adding the is_recommended indicator
+                "is_recommended": is_recommended,  # Adding the is_recommended indicator
+                "is_group_track": is_group_track  # Adding the is_group_track indicator
             }
             list_builder.build_row(row_data=row_data, criteria_colors=criteria_colors)
 

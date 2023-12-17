@@ -58,7 +58,7 @@ class TeacherPortal(BasePortal, ABC):
     def get_progress_dashboard(self):
         return ProgressDashboard(
             self.settings_repo, self.recording_repo, self.user_achievement_repo,
-            self.user_practice_log_repo, self.track_repo, self.assignment_repo)
+            self.user_practice_log_repo, self.track_repo, self.assignment_repo, self.user_repo)
 
     def get_practice_dashboard(self):
         return PracticeDashboard(self.user_practice_log_repo)
@@ -994,7 +994,9 @@ class TeacherPortal(BasePortal, ABC):
         st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
         self.student_assessment_dashboard_builder.show_assessment(selected_user_id)
         self.divider(5)
-        self.get_progress_dashboard().build(selected_user_id)
+        user_group = self.user_repo.get_group_by_user_id(selected_user_id)
+        group_id = user_group['group_id']
+        self.get_progress_dashboard().build(selected_user_id, group_id)
         st.markdown("<h1 style='font-size: 20px;'>Practice Logs</h1>", unsafe_allow_html=True)
         self.get_practice_dashboard().build(selected_user_id)
 

@@ -2,12 +2,15 @@ import streamlit as st
 
 from components.TrackRecommender import TrackRecommender
 from repositories.RecordingRepository import RecordingRepository
+from repositories.UserRepository import UserRepository
 
 
 class TrackRecommendationDashboard:
-    def __init__(self, recording_repo: RecordingRepository):
+    def __init__(self, recording_repo: RecordingRepository,
+                 user_repo: UserRepository):
         self.recording_repo = recording_repo
-        self.track_recommender = TrackRecommender(self.recording_repo)
+        self.user_repo = user_repo
+        self.track_recommender = TrackRecommender(self.recording_repo, self.user_repo)
 
     def display_recommendations(self, user_id):
         # Get recommended tracks

@@ -56,7 +56,7 @@ class StudentPortal(BasePortal, ABC):
     def get_progress_dashboard(self):
         return ProgressDashboard(
             self.settings_repo, self.recording_repo, self.user_achievement_repo,
-            self.user_practice_log_repo, self.track_repo, self.assignment_repo)
+            self.user_practice_log_repo, self.track_repo, self.assignment_repo, self.user_repo)
 
     def get_practice_dashboard(self):
         return PracticeDashboard(self.user_practice_log_repo)
@@ -195,7 +195,7 @@ class StudentPortal(BasePortal, ABC):
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 24px;'> 🎙️ Record Your Tracks 🎙️</h2>", unsafe_allow_html=True)
         selected_track_name, recommended_tracks = TrackRecommendationDashboard(
-            self.recording_repo).display_recommendations(self.get_user_id())
+            self.recording_repo, self.user_repo).display_recommendations(self.get_user_id())
         st.write("")
         # Set the track based on the selected button
         track = self.filter_tracks(selected_track_name)
@@ -397,6 +397,7 @@ class StudentPortal(BasePortal, ABC):
                 <p>Welcome to your Progress Dashboard! Here's what you'll find in this tab:</p>
                 <ul>
                     <li><b>Recommended Tracks:</b> Look for the <span style='color: blue;'>🔷</span> icon - it highlights the top 5 tracks chosen just for you based on your performance and skill level!</li>
+                    <li><b>Group Tracks:</b> The <span style='color: blue;'>🌐</span> icon represents tracks that are commonly being worked on within your group. These are the top tracks that your group members are focusing on, giving you insight into group trends and focus areas.</li>
                     <li><b>Track Visibility:</b> The table displays tracks from all levels up to the highest level (level n) where you've uploaded at least one recording. This ensures that you have a complete view of your journey from the very beginning to your current level.</li>
                     <li><b>Color-Coded Progress:</b> As you work through the tracks, the table color codes your progress:
                         <ul>
@@ -411,7 +412,7 @@ class StudentPortal(BasePortal, ABC):
             </div>
             """, unsafe_allow_html=True)
 
-        self.get_progress_dashboard().build(self.get_user_id())
+        self.get_progress_dashboard().build(self.get_user_id(), self.get_group_id())
         self.divider(5)
         st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
         self.get_student_assessment_dashboard().show_assessment(self.get_user_id())
