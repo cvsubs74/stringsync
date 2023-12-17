@@ -11,7 +11,7 @@ class ScorePredictionModelRepository:
         # Base query
         query = """
             SELECT t.id as track_id, t.name as track_name, raga.name as raga_name,
-                   t.level, t.offset, rec.duration, rec.distance, rec.score 
+                   t.level, t.offset, rec.id as recording_id, rec.duration, rec.distance, rec.score 
             FROM recordings rec
             INNER JOIN tracks t ON rec.track_id = t.id
             INNER JOIN ragas raga ON t.ragam_id = raga.id

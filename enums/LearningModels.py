@@ -19,7 +19,7 @@ class LearningModels(Enum):
         'name': 'LinearRegressionScorePredictionModel',
         'class': LinearRegressionModelBuilder,
         'description': 'Linear Regression Score Prediction Model',
-        'enabled': True
+        'enabled': False
     }
     DecisionTreeScorePredictionModel = {
         'name': 'DecisionTreeScorePredictionModel',
@@ -31,7 +31,7 @@ class LearningModels(Enum):
         'name': 'GradientBoostingScorePredictionModel',
         'class': GradientBoostingModelBuilder,
         'description': 'Gradient Boosting Score Prediction Model',
-        'enabled': True
+        'enabled': False
     }
     SVRScorePredictionModel = {
         'name': 'SVRScorePredictionModel',
@@ -43,7 +43,7 @@ class LearningModels(Enum):
         'name': 'KNNPredictionModel',
         'class': KNNModelBuilder,
         'description': 'KNN Score Prediction Model',
-        'enabled': True
+        'enabled': False
     }
 
     def get_model_builder(self):
