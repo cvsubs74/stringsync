@@ -496,7 +496,6 @@ class StudentPortal(BasePortal, ABC):
         st.session_state.selected_track_name = st.selectbox("Select a Track", ["Select a Track"] + track_names,
                                                             index=default_index)
 
-        print(default_track_name, st.session_state.selected_track_name)
         return st.session_state.selected_track_name
 
     @staticmethod

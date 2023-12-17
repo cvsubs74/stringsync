@@ -29,12 +29,11 @@ class ProgressDashboard:
     def build(self, user_id):
         with st.spinner("Please wait.."):
             tracks = self.get_tracks(user_id)
-            print("Tracks:", tracks)
             if len(tracks) == 0:
                 st.info("Please wait for lessons to be available.")
                 return
             # Assignment stats
-            self.show_assignment_stats(user_id)
+            # self.show_assignment_stats(user_id)
             # Recording stats
             self.show_recording_stats(tracks)
             # Display the line graphs for duration, tracks, and average scores
@@ -101,7 +100,6 @@ class ProgressDashboard:
         list_builder.build_header(
             column_names=["Track", "Number of Recordings", "Average Score", "Min Score", "Max Score"])
         for track_detail in tracks:
-            print(track_detail)
             row_data = {
                 "Track": track_detail['track']['name'],
                 "Number of Recordings": track_detail['num_recordings'],
