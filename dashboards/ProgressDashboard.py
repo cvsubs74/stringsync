@@ -3,6 +3,7 @@ from decimal import Decimal
 import streamlit as st
 
 from components.ListBuilder import ListBuilder
+from components.TrackRecommender import TrackRecommender
 from repositories.AssignmentRepository import AssignmentRepository
 from repositories.RecordingRepository import RecordingRepository
 from repositories.SettingsRepository import SettingsRepository
@@ -34,18 +35,7 @@ class ProgressDashboard:
             if len(tracks) == 0:
                 st.info("Please wait for lessons to be available.")
                 return
-            # Assignment stats
-            # self.show_assignment_stats(user_id)
-            # Recording stats
-            self.show_recording_stats(tracks)
-            # Display the line graphs for duration, tracks, and average scores
-            # self.show_track_count_and_duration_trends(user_id)
-            # Display practice logs line graph
-            # self.show_practice_trends(user_id)
-            # bar graph for average score comparison
-            # self.show_score_graph_by_track(tracks)
-            # bar graph for attempts comparison
-            # self.show_attempt_graph_by_track(tracks)
+            self.show_recording_stats(user_id, tracks)
 
     def show_assignment_stats(self, user_id):
         # Retrieve assignment stats for the specific user
@@ -101,9 +91,12 @@ class ProgressDashboard:
 
         return track_details
 
-    @staticmethod
-    def show_recording_stats(tracks):
-        column_widths = [16.66, 16.66, 16.66, 16.66, 16.66, 16.66]
+    def show_recording_stats(self, user_id, tracks):
+        track_recommender = TrackRecommender(self.recording_repo)
+        recommended_tracks = track_recommender.recommend_tracks(user_id)
+        recommended_track_names = [track['track_name'] for track in recommended_tracks]
+
+        column_widths = [20, 16, 16, 16, 16, 16]
         list_builder = ListBuilder(column_widths)
 
         list_builder.build_header(
@@ -114,6 +107,7 @@ class ProgressDashboard:
 
         # Define the criteria for changing the row color
         criteria_colors = [
+            (lambda row: row['is_recommended'], "#ADD8E6"),
             (lambda row: float(row['Average Score']) >= float(row['Threshold']), "#93E353"),
             (lambda row: float(row['Threshold']) * margin <= float(row['Average Score']) < float(row['Threshold']),
              "#EAE185"),
@@ -122,13 +116,16 @@ class ProgressDashboard:
         ]
 
         for track_detail in tracks:
+            is_recommended = track_detail['track']['name'] in recommended_track_names
+            recommended_icon = "⭐" if is_recommended else "&nbsp&nbsp&nbsp&nbsp&nbsp"
             row_data = {
-                "Track": track_detail['track']['name'],
+                "Track": f"{recommended_icon} {track_detail['track']['name']}",
                 "Number of Recordings": track_detail['num_recordings'],
                 "Average Score": round(track_detail['avg_score'], 2),
                 "Threshold": round(track_detail['recommendation_threshold_score'], 2),
                 "Min Score": track_detail['min_score'],
-                "Max Score": track_detail['max_score']
+                "Max Score": track_detail['max_score'],
+                "is_recommended": is_recommended  # Adding the is_recommended indicator
             }
             list_builder.build_row(row_data=row_data, criteria_colors=criteria_colors)
 

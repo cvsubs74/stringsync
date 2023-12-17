@@ -396,14 +396,13 @@ class StudentPortal(BasePortal, ABC):
             <div style='font-size: 18px;'>
                 <p>Welcome to your Progress Dashboard! Here's what you'll find in this tab:</p>
                 <ul>
-                    <li><b>Recommended Tracks:</b> The system suggests the next set of 5 tracks you should focus on. These recommendations are based on your current skill level and performance.</li>
+                    <li><b>Recommended Tracks:</b> Look for the <span style='color: gold;'>⭐</span> icon - it highlights the top 5 tracks chosen just for you based on your performance and skill level!</li>
                     <li><b>Track Visibility:</b> The table only displays tracks from levels where you've attempted at least one track. This helps to keep the dashboard relevant to your current progress. Tracks from levels you haven't reached yet will not appear here, ensuring brevity and context.</li>
                     <li><b>Color-Coded Progress:</b> As you work through the tracks, the table color codes your progress:
                         <ul>
                             <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #93E353;'></span> Green: Your average score for a track has crossed the threshold. Great job!</li>
                             <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EAE185;'></span> Yellow: You're getting there! Your score is within 80% of the threshold.</li>
                             <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EE9F9F;'></span> Red: Keep practicing! Your score is below 80% of the threshold.</li>
-                            <li>Unattempted tracks are not color coded. Give them a try!</li>
                         </ul>
                     </li>
                 </ul>
