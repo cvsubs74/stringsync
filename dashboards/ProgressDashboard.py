@@ -103,7 +103,6 @@ class ProgressDashboard:
 
     @staticmethod
     def show_recording_stats(tracks):
-        st.markdown("<h1 style='font-size: 20px;'>Recording Statistics</h1>", unsafe_allow_html=True)
         column_widths = [16.66, 16.66, 16.66, 16.66, 16.66, 16.66]
         list_builder = ListBuilder(column_widths)
 

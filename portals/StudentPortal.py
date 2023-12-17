@@ -411,7 +411,6 @@ class StudentPortal(BasePortal, ABC):
             </div>
             """, unsafe_allow_html=True)
 
-        self.divider()
         self.get_progress_dashboard().build(self.get_user_id())
         self.divider(5)
         st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
