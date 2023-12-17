@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import streamlit as st
 
 from components.ListBuilder import ListBuilder
@@ -37,13 +39,13 @@ class ProgressDashboard:
             # Recording stats
             self.show_recording_stats(tracks)
             # Display the line graphs for duration, tracks, and average scores
-            self.show_track_count_and_duration_trends(user_id)
+            # self.show_track_count_and_duration_trends(user_id)
             # Display practice logs line graph
-            self.show_practice_trends(user_id)
+            # self.show_practice_trends(user_id)
             # bar graph for average score comparison
-            self.show_score_graph_by_track(tracks)
+            # self.show_score_graph_by_track(tracks)
             # bar graph for attempts comparison
-            self.show_attempt_graph_by_track(tracks)
+            # self.show_attempt_graph_by_track(tracks)
 
     def show_assignment_stats(self, user_id):
         # Retrieve assignment stats for the specific user
@@ -71,22 +73,30 @@ class ProgressDashboard:
         st.write("")
 
     def get_tracks(self, user_id):
-        # Fetch all tracks and track statistics for this user
-        track_statistics = self.recording_repo.get_track_statistics_by_user(user_id)
+        # Fetch user-specific track statistics
+        user_track_statistics = self.recording_repo.get_track_statistics_by_user(user_id)
+        track_statistics = self.recording_repo.get_all_track_statistics()
+
+        # Get unique levels where the user has attempted at least one track
+        user_levels = {stat['level'] for stat in user_track_statistics}
+
+        # Filter all tracks to include only those in levels where the user has attempted at least one track
+        filtered_tracks = [track for track in track_statistics if track['level'] in user_levels]
 
         # Create a dictionary for quick lookup of statistics by track_id
-        stats_dict = {stat['track_id']: stat for stat in track_statistics}
+        stats_dict = {stat['track_id']: stat for stat in user_track_statistics}
 
-        # Build track details list using list comprehension
+        # Build track details list
         track_details = [
             {
                 'track': track,
+                'recommendation_threshold_score': track.get('recommendation_threshold_score', 0),
                 'num_recordings': stats_dict.get(track['track_id'], {}).get('num_recordings', 0),
                 'avg_score': stats_dict.get(track['track_id'], {}).get('avg_score', 0),
                 'min_score': stats_dict.get(track['track_id'], {}).get('min_score', 0),
                 'max_score': stats_dict.get(track['track_id'], {}).get('max_score', 0)
             }
-            for track in track_statistics
+            for track in filtered_tracks
         ]
 
         return track_details
@@ -94,20 +104,34 @@ class ProgressDashboard:
     @staticmethod
     def show_recording_stats(tracks):
         st.markdown("<h1 style='font-size: 20px;'>Recording Statistics</h1>", unsafe_allow_html=True)
-        column_widths = [20, 20, 20, 20, 20]
+        column_widths = [16.66, 16.66, 16.66, 16.66, 16.66, 16.66]
         list_builder = ListBuilder(column_widths)
 
         list_builder.build_header(
-            column_names=["Track", "Number of Recordings", "Average Score", "Min Score", "Max Score"])
+            column_names=["Track", "Number of Recordings", "Average Score", "Threshold", "Min Score", "Max Score"])
+
+        # Define margin as 80% of the threshold
+        margin = float(Decimal(0.8))
+
+        # Define the criteria for changing the row color
+        criteria_colors = [
+            (lambda row: float(row['Average Score']) >= float(row['Threshold']), "#93E353"),
+            (lambda row: float(row['Threshold']) * margin <= float(row['Average Score']) < float(row['Threshold']),
+             "#EAE185"),
+            (lambda row: float(row['Average Score']) < float(row['Threshold']) * margin, "#EE9F9F"),
+            (lambda row: float(row['Average Score']) == 0, "#FDFEFE"),
+        ]
+
         for track_detail in tracks:
             row_data = {
                 "Track": track_detail['track']['name'],
                 "Number of Recordings": track_detail['num_recordings'],
                 "Average Score": round(track_detail['avg_score'], 2),
+                "Threshold": round(track_detail['recommendation_threshold_score'], 2),
                 "Min Score": track_detail['min_score'],
                 "Max Score": track_detail['max_score']
             }
-            list_builder.build_row(row_data=row_data)
+            list_builder.build_row(row_data=row_data, criteria_colors=criteria_colors)
 
     def show_track_count_and_duration_trends(self, user_id):
         recording_duration_data = self.recording_repo.get_recording_duration_by_date(user_id)

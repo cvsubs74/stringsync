@@ -391,16 +391,31 @@ class StudentPortal(BasePortal, ABC):
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 24px;'> 📈 Track Your Progress & Development 📈</h2>", unsafe_allow_html=True)
+
+        st.markdown("""
+            <div style='font-size: 18px;'>
+                <p>Welcome to your Progress Dashboard! Here's what you'll find in this tab:</p>
+                <ul>
+                    <li><b>Recommended Tracks:</b> The system suggests the next set of 5 tracks you should focus on. These recommendations are based on your current skill level and performance.</li>
+                    <li><b>Track Visibility:</b> The table only displays tracks from levels where you've attempted at least one track. This helps to keep the dashboard relevant to your current progress. Tracks from levels you haven't reached yet will not appear here, ensuring brevity and context.</li>
+                    <li><b>Color-Coded Progress:</b> As you work through the tracks, the table color codes your progress:
+                        <ul>
+                            <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #93E353;'></span> Green: Your average score for a track has crossed the threshold. Great job!</li>
+                            <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EAE185;'></span> Yellow: You're getting there! Your score is within 80% of the threshold.</li>
+                            <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EE9F9F;'></span> Red: Keep practicing! Your score is below 80% of the threshold.</li>
+                            <li>Unattempted tracks are not color coded. Give them a try!</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>This dashboard is a great way to see how much you've accomplished and what to work on next. Keep practicing, and you'll see those colors change!</p>
+            </div>
+            """, unsafe_allow_html=True)
+
         self.divider()
+        self.get_progress_dashboard().build(self.get_user_id())
+        self.divider(5)
         st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
         self.get_student_assessment_dashboard().show_assessment(self.get_user_id())
-        self.divider(5)
-        col1, col2, col3 = st.columns([2.5, 2, 1])
-        with col2:
-            if not st.button("Load Statistics", type="primary"):
-                return
-
-        self.get_progress_dashboard().build(self.get_user_id())
 
     def team_dashboard(self):
         st.markdown(f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; "

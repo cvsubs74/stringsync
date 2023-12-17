@@ -126,7 +126,7 @@ class RecordingRepository:
     def get_track_statistics_by_user(self, user_id):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
         query = """
-        SELECT r.track_id, t.name as name,
+        SELECT r.track_id, t.name as name, t.level as level,
                t.recommendation_threshold_score, 
                COALESCE(COUNT(*), 0) AS num_recordings, 
                COALESCE(MAX(r.score), 0) AS max_score, 
