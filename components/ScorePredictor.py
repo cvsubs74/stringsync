@@ -39,6 +39,7 @@ class ScorePredictor:
 
         # Build generic model
         self.train(training_dataset)
+        st.success("Model generation process completed.")
         # Evaluate model performance
         self.evaluate_model_performance(training_dataset)
 

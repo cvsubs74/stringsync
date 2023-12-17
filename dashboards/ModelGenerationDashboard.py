@@ -41,7 +41,6 @@ class ModelGenerationDashboard:
         # Button to trigger model generation
         if st.button("Generate Models", type="primary"):
             self.score_predictor.build_models()
-            st.success("Model generation process completed.")
 
         self.test_model()
         st.divider()
