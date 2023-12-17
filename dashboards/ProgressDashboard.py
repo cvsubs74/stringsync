@@ -67,11 +67,14 @@ class ProgressDashboard:
         user_track_statistics = self.recording_repo.get_track_statistics_by_user(user_id)
         track_statistics = self.recording_repo.get_all_track_statistics()
 
-        # Get unique levels where the user has attempted at least one track
-        user_levels = {stat['level'] for stat in user_track_statistics}
+        # Get the highest level the user has attempted
+        highest_user_level = max(stat['level'] for stat in user_track_statistics)
 
-        # Filter all tracks to include only those in levels where the user has attempted at least one track
-        filtered_tracks = [track for track in track_statistics if track['level'] in user_levels]
+        # Include all levels up to the highest level the user has attempted
+        included_levels = set(range(1, highest_user_level + 1))
+
+        # Filter all tracks to include only those in levels up to the highest attempted level
+        filtered_tracks = [track for track in track_statistics if track['level'] in included_levels]
 
         # Create a dictionary for quick lookup of statistics by track_id
         stats_dict = {stat['track_id']: stat for stat in user_track_statistics}
@@ -117,7 +120,7 @@ class ProgressDashboard:
 
         for track_detail in tracks:
             is_recommended = track_detail['track']['name'] in recommended_track_names
-            recommended_icon = "⭐" if is_recommended else "&nbsp&nbsp&nbsp&nbsp&nbsp"
+            recommended_icon = "🔷" if is_recommended else "&nbsp;" * 5
             row_data = {
                 "Track": f"{recommended_icon} {track_detail['track']['name']}",
                 "Number of Recordings": track_detail['num_recordings'],

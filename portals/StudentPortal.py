@@ -101,14 +101,14 @@ class StudentPortal(BasePortal, ABC):
 
     def get_tab_dict(self):
         tabs = [
-            ("🏆 Hall of Fame", self.hall_of_fame),
+            ("📊 Progress Dashboard", self.progress_dashboard),
             ("🎤 Record", self.recording_dashboard),
+            ("🏆 Hall of Fame", self.hall_of_fame),
             ("📥 Submissions", self.submissions_dashboard),
             ("⏲️ Practice Log", self.practice_dashboard),
             ("🏆 Badges", self.badges_dashboard),
             ("📚 Resources", self.resources_dashboard),
             ("📝 Assignments", self.assignments_dashboard),
-            ("📊 Progress Dashboard", self.progress_dashboard),
             ("👥 Team Dashboard", self.team_dashboard),
             ("🔗 Team Connect", self.team_connect),
             ("⚙️ Settings", self.settings) if self.is_feature_enabled(
@@ -396,8 +396,8 @@ class StudentPortal(BasePortal, ABC):
             <div style='font-size: 18px;'>
                 <p>Welcome to your Progress Dashboard! Here's what you'll find in this tab:</p>
                 <ul>
-                    <li><b>Recommended Tracks:</b> Look for the <span style='color: gold;'>⭐</span> icon - it highlights the top 5 tracks chosen just for you based on your performance and skill level!</li>
-                    <li><b>Track Visibility:</b> The table only displays tracks from levels where you've attempted at least one track. This helps to keep the dashboard relevant to your current progress. Tracks from levels you haven't reached yet will not appear here, ensuring brevity and context.</li>
+                    <li><b>Recommended Tracks:</b> Look for the <span style='color: blue;'>🔷</span> icon - it highlights the top 5 tracks chosen just for you based on your performance and skill level!</li>
+                    <li><b>Track Visibility:</b> The table displays tracks from all levels up to the highest level (level n) where you've uploaded at least one recording. This ensures that you have a complete view of your journey from the very beginning to your current level.</li>
                     <li><b>Color-Coded Progress:</b> As you work through the tracks, the table color codes your progress:
                         <ul>
                             <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #93E353;'></span> Green: Your average score for a track has crossed the threshold. Great job!</li>
@@ -405,6 +405,7 @@ class StudentPortal(BasePortal, ABC):
                             <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EE9F9F;'></span> Red: Keep practicing! Your score is below 80% of the threshold.</li>
                         </ul>
                     </li>
+                    <li><b>A Note for Advanced Students:</b> If you find yourself revisiting lower-level tracks that weren't available in your earlier training, please be patient. These foundational tracks are crucial for reinforcing basic skills and ensuring a well-rounded mastery. Your dedication to these tracks, despite your advanced level, is key to your overall musical development.</li>
                 </ul>
                 <p>This dashboard is a great way to see how much you've accomplished and what to work on next. Keep practicing, and you'll see those colors change!</p>
             </div>
