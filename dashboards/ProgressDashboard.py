@@ -139,10 +139,10 @@ class ProgressDashboard:
             icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 3  # Initialize with three spaces for alignment
             if is_group_track:
                 icons[0] = "🔶"
-            if is_recommended:
-                icons[1] = "🔷"
             if is_advanced_group_track:
-                icons[2] = "♦️"
+                icons[1] = "♦️"
+            if is_recommended:
+                icons[2] = "🔷"
 
             icon_str = "".join(icons)
 
