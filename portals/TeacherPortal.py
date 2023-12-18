@@ -135,7 +135,7 @@ class TeacherPortal(BasePortal, ABC):
             ("📚 Resources", self.resource_management),
             ("🎵 Create Track", self.create_track),
             ("🎵 List Tracks", self.list_tracks),
-            ("🧠 Generate Prediction Models", self.generate_prediction_models),
+            ("🧠 Scoring Models", self.generate_prediction_models),
             ("📝 Assignments", self.assignment_management),
             ("🎵 Recordings", self.list_recordings) if self.is_feature_enabled(
                 Features.TEACHER_PORTAL_RECORDINGS) else None,
@@ -650,7 +650,7 @@ class TeacherPortal(BasePortal, ABC):
 
     def generate_prediction_models(self):
         st.markdown(f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; "
-                    "font-size: 28px;'> 🎵 Generate Prediction Models 🎵</h2>", unsafe_allow_html=True)
+                    "font-size: 28px;'> 🎵 Scoring Models 🎵</h2>", unsafe_allow_html=True)
         self.divider()
         self.get_model_generation_dashboard().build()
 
