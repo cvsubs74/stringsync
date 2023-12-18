@@ -93,7 +93,7 @@ class TrackRecommender:
             recommended_tracks = self.recommend_tracks(user_id)
             for track in recommended_tracks:
                 # Add level and ordering rank tuple to the set
-                unique_tracks.add((track['level'], track['ordering_rank']))
+                unique_tracks.add((track['level'], track['ordering_rank'], user_id))
 
         # Sort tracks first by level (descending) then by ordering rank (descending)
         sorted_tracks = sorted(unique_tracks, key=lambda x: (-x[0], -x[1]))
@@ -101,4 +101,5 @@ class TrackRecommender:
         # Get the top 5 most advanced tracks
         top_advanced_tracks = sorted_tracks[:5]
 
-        return [{'level': track[0], 'ordering_rank': track[1]} for track in top_advanced_tracks]
+        return [{'level': track[0], 'ordering_rank': track[1], 'user_id': track[2]}
+                for track in top_advanced_tracks]

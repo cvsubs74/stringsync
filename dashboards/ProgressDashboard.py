@@ -106,6 +106,11 @@ class ProgressDashboard:
         group_track_names = [track['name'] for track in group_tracks]
         advanced_group_tracks = track_recommender.get_top_advanced_tracks_for_group(group_id)
         advanced_group_track_info = [(track['level'], track['ordering_rank']) for track in advanced_group_tracks]
+        advanced_user_ids = [track['user_id'] for track in advanced_group_tracks]
+
+        # Identify the top performer
+        top_performer_id = max(advanced_group_tracks, key=lambda track: (track['level'], track['ordering_rank']),
+                               default={'user_id': None})['user_id']
 
         # Determine the user's, group's common, and advanced group's highest level and ordering rank
         user_highest_info = max([(track['level'], track['ordering_rank']) for track in recommended_tracks],
@@ -114,18 +119,46 @@ class ProgressDashboard:
                                  default=(0, 0))
         group_common_info = max([(track['level'], track['ordering_rank']) for track in group_tracks], default=(0, 0))
 
-        # Check user's progress status
+        # Determine the user's progress status and provide context with color icon explanations
         if user_highest_info in advanced_group_track_info and user_highest_info >= group_highest_info:
-            progress_status = "🏆 Leading the Way - Keep Soaring High!"
+            if top_performer_id == user_id:
+                # Congratulatory message for the current user
+                progress_status = "<h4 style='font-size: 18px;'>🏆 You're the Top Performer - Leading the Way!</h4>" \
+                                  "<p style='font-size: 16px;'>Fantastic! You're at the forefront, leading the pack with " \
+                                  "those cool <span style='color: red;'>♦️</span> red diamonds. Keep up the amazing work " \
+                                  "and continue to set the pace for your friends!</p>"
+            else:
+                progress_status = "<h4 style='font-size: 18px;'>🏆 Top Performer - Keep Soaring High!</h4>" \
+                                  "<p style='font-size: 16px;'>You're leading the pack (indicated by the ♦️ red diamonds). " \
+                                  "You're hitting the advanced tracks that even the fastest learners in the group are " \
+                                  "working on. Amazing job!</p>"
         elif user_highest_info > group_common_info:
-            progress_status = "🚀 Excelling Ahead - Fantastic Progress!"
+            progress_status = "<h4 style='font-size: 18px;'>🚀 Excelling Ahead - Fantastic Progress!</h4>" \
+                              "<p style='font-size: 16px;'>You're outpacing the average group progress " \
+                              "(marked by the 🔶 orange diamonds). This means you're learning faster than most, " \
+                              "taking on more challenging tracks. Keep it up!</p>"
         elif user_highest_info == group_common_info:
-            progress_status = "✅ Right on Track - Steady and Strong!"
+            progress_status = "<h4 style='font-size: 18px;'>✅ Right on Track - Steady and Strong!</h4>" \
+                              "<p style='font-size: 16px;'>You're moving in sync with the group's average progress " \
+                              "(🔶 orange diamonds). This shows you're keeping pace with your peers and are right " \
+                              "where you should be.</p> "
         else:
-            progress_status = "🌟 Time to Shine - Let's Catch Up!"
+            progress_status = "<h4 style='font-size: 18px;'>🌟 Time to Shine - Let's Catch Up!</h4>" \
+                              "<p style='font-size: 16px;'>You've got some catching up to do, as you're currently " \
+                              "behind the group's average (🔶 orange diamonds). But don't worry, it's your time to " \
+                              "shine! With a little extra practice, you can quickly move up.</p>"
 
-        # Display progress status
-        st.markdown(f"<h4 style='font-size: 18px;'>Musical Growth Tracker: {progress_status}</h4>", unsafe_allow_html=True)
+        # Display progress status with color icon context and formatted text
+        st.markdown(progress_status, unsafe_allow_html=True)
+
+        # Additional message for top performer if not the current user
+        if top_performer_id and top_performer_id != user_id:
+            st.markdown(
+                f"<p style='font-size: 16px;'>Heads up, musical stars! One of your friends is racing ahead, "
+                f"setting an exciting pace! See those cool <span style='color: red;'>♦️</span> red diamonds? "
+                f"They mark the tracks your friend is mastering. Think you can catch up or even zoom ahead? "
+                f"Let's turn up the music and show what you've got! 🎵🚀</p>",
+                unsafe_allow_html=True)
 
         column_widths = [22, 13, 13, 13, 13, 13, 13]
         list_builder = ListBuilder(column_widths)
