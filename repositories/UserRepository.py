@@ -13,7 +13,7 @@ class UserRepository:
         #self.create_avatars_table()
         #self.create_users_table()
         self.create_root_user()
-        #self.create_avatars()
+        # self.create_avatars()
 
     def create_avatars_table(self):
         with self.connection.cursor() as cursor:
@@ -396,7 +396,7 @@ class UserRepository:
                 """
 
         with self.connection.cursor() as cursor:
-            for i in range(1, 36):
+            for i in range(1, 38):
                 avatar_name = f"avatar {i}"
                 # Check if avatar already exists
                 cursor.execute(check_avatar_query, (avatar_name,))

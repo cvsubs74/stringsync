@@ -140,7 +140,7 @@ class TeacherPortal(BasePortal, ABC):
             ("🎵 Recordings", self.list_recordings) if self.is_feature_enabled(
                 Features.TEACHER_PORTAL_RECORDINGS) else None,
             ("📥 Submissions", self.submissions),
-            ("📊 Progress Dashboard", self.progress_dashboard),
+            ("📊 Skills Dashboard", self.progress_dashboard),
             ("📋 Assessments", self.assessments),
             ("👥 Team Dashboard", self.team_dashboard),
             ("🏆 Hall of Fame", self.hall_of_fame),
@@ -998,14 +998,18 @@ class TeacherPortal(BasePortal, ABC):
         else:
             return
 
-        st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
-        self.student_assessment_dashboard_builder.show_assessment(selected_user_id)
-        self.divider(5)
         user_group = self.user_repo.get_group_by_user_id(selected_user_id)
         group_id = user_group['group_id']
         self.get_progress_dashboard().build(selected_user_id, group_id)
+        st.write("")
+        st.write("")
+        st.write("")
+        self.divider(2)
         st.markdown("<h1 style='font-size: 20px;'>Practice Logs</h1>", unsafe_allow_html=True)
         self.get_practice_dashboard().build(selected_user_id)
+        self.divider(2)
+        st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
+        self.student_assessment_dashboard_builder.show_assessment(selected_user_id)
 
     def assessments(self):
         st.markdown(
