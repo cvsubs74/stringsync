@@ -396,8 +396,8 @@ class StudentPortal(BasePortal, ABC):
             <div style='font-size: 18px;'>
                 <p>Welcome to your Progress Dashboard! Here's what you'll find in this tab:</p>
                 <ul>
-                    <li><b>Recommended Tracks:</b> Look for the <span style='color: blue;'>🔷</span> icon - it highlights the top 5 tracks chosen just for you based on your performance and skill level!</li>
-                    <li><b>Group Tracks:</b> The <span style='color: blue;'>🌐</span> icon represents tracks that are commonly being worked on within your group. These are the top tracks that your group members are focusing on, giving you insight into group trends and focus areas.</li>
+                    <li><b>Recommended Tracks:</b> The <span style='color: blue;'>🔷</span> icon highlights the top 5 tracks chosen just for you based on your performance and skill level!</li>
+                    <li><b>Group Tracks:</b> The <span style='color: #FFA500;'>🔶</span> icon represents tracks that are commonly being worked on within your group. These are the top tracks that your group members are focusing on, giving you insight into group trends and focus areas.</li>
                     <li><b>Track Visibility:</b> The table displays tracks from all levels up to the highest level (level n) where you've uploaded at least one recording. This ensures that you have a complete view of your journey from the very beginning to your current level.</li>
                     <li><b>Color-Coded Progress:</b> As you work through the tracks, the table color codes your progress:
                         <ul>

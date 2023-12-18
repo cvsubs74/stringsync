@@ -133,7 +133,7 @@ class ProgressDashboard:
             # Icon logic with fixed length
             icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 2  # Initialize with two spaces (or as needed for alignment)
             if is_group_track:
-                icons[0] = "🌐"
+                icons[0] = "🔶"
             if is_recommended:
                 icons[1] = "🔷"
 
