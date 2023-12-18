@@ -101,7 +101,7 @@ class StudentPortal(BasePortal, ABC):
 
     def get_tab_dict(self):
         tabs = [
-            ("📊 Progress Dashboard", self.progress_dashboard),
+            ("📊 Skills Dashboard", self.progress_dashboard),
             ("🎤 Record", self.recording_dashboard),
             ("🏆 Hall of Fame", self.hall_of_fame),
             ("📥 Submissions", self.submissions_dashboard),
@@ -406,6 +406,7 @@ class StudentPortal(BasePortal, ABC):
                             <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EE9F9F;'></span> Red: Keep practicing! Your score is below 80% of the threshold.</li>
                         </ul>
                     </li>
+                    <li><b>Understanding Your Position:</b> The blue diamond (<span style='color: blue;'>🔷</span>) indicates the tracks recommended for you, while the orange diamond (<span style='color: #FFA500;'>🔶</span>) shows where your group is focused. If blue diamonds appear further down the table, you're ahead of the group; if they align, you're moving at the same pace as the group; if orange diamonds are further down, you need to catch up.</li>
                     <li><b>A Note for Advanced Students:</b> If you find yourself revisiting lower-level tracks that weren't available in your earlier training, please be patient. These foundational tracks are crucial for reinforcing basic skills and ensuring a well-rounded mastery. Your dedication to these tracks, despite your advanced level, is key to your overall musical development.</li>
                 </ul>
                 <p>This dashboard is a great way to see how much you've accomplished and what to work on next. Keep practicing, and you'll see those colors change!</p>
