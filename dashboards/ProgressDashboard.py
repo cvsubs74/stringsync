@@ -106,11 +106,11 @@ class ProgressDashboard:
         advanced_group_tracks = track_recommender.get_top_advanced_tracks_for_group(group_id)
         advanced_group_track_info = [(track['level'], track['ordering_rank']) for track in advanced_group_tracks]
 
-        column_widths = [18, 7, 15, 15, 15, 15, 15]
+        column_widths = [22, 13, 13, 13, 13, 13, 13]
         list_builder = ListBuilder(column_widths)
 
         list_builder.build_header(
-            column_names=["Track", "Level", "Number of Recordings", "Average Score", "Threshold", "Min Score",
+            column_names=["Track", "Level", "Recordings", "Average Score", "Threshold", "Min Score",
                           "Max Score"])
 
         # Define margin as 80% of the threshold
@@ -136,13 +136,14 @@ class ProgressDashboard:
             is_advanced_group_track = (track_level, track_ordering_rank) in advanced_group_track_info
 
             # Icon logic with fixed length
-            icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 3  # Initialize with three spaces for alignment
+            icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 3
             if is_group_track:
                 icons[0] = "🔶"
             if is_advanced_group_track:
                 icons[1] = "♦️"
             if is_recommended:
                 icons[2] = "🔷"
+            icons.append("&nbsp;&nbsp;")
 
             icon_str = "".join(icons)
 
