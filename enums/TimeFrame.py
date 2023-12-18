@@ -1,6 +1,8 @@
 import enum
 import datetime
 
+import pytz
+
 
 class TimeFrame(enum.Enum):
     CURRENT_WEEK = 'Current Week'
@@ -16,9 +18,12 @@ class TimeFrame(enum.Enum):
         # This will return a list of tuples (enum_member, enum_member.value)
         return [(item, item.value) for item in cls]
 
-    def get_date_range(self):
+    def get_date_range(self, timezone='America/Los_Angeles'):
         # Get today's date as a date object
-        today = datetime.date.today()
+        tz = pytz.timezone(timezone)
+        now = datetime.datetime.now(tz)
+        today = now.date()
+
         if self == TimeFrame.CURRENT_WEEK:
             start_date = today - datetime.timedelta(days=today.weekday())  # Monday
             end_date = start_date + datetime.timedelta(days=7, seconds=-1)

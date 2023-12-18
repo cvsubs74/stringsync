@@ -24,7 +24,7 @@ class TeamDashboard:
         self.badge_awarder = badge_awarder
         self.avatar_loader = avatar_loader
 
-    def build(self, group_ids, time_frame):
+    def build(self, group_ids, time_frame: TimeFrame):
         with st.spinner("Please wait.."):
             # Iterate over each group ID and fetch the dashboard data
             for group_id in group_ids:

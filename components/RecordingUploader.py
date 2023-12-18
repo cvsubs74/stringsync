@@ -63,7 +63,6 @@ class RecordingUploader:
             form_key = f"recording_upload_{track['id']}"
         with st.form(form_key, clear_on_submit=True):
             uploaded_student_file = st.file_uploader("Choose an audio file", type=["m4a", "mp3"])
-            original_date = st.date_input("Original File Date", value=None)  # Default value is None
             uploaded = st.form_submit_button("Upload", type="primary")
 
             upload_successful = False
@@ -77,11 +76,7 @@ class RecordingUploader:
 
                 # If the original date is provided, use it to create a datetime object,
                 # otherwise use the current date and time.
-                if original_date:
-                    original_timestamp = datetime.datetime.combine(
-                        original_date, datetime.datetime.min.time())
-                else:
-                    original_timestamp = datetime.datetime.now()
+                original_timestamp = datetime.datetime.now()
 
                 with st.spinner("Please wait.."):
                     recording_data = uploaded_student_file.getbuffer()
