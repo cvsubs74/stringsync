@@ -103,15 +103,35 @@ class ProgressDashboard:
         recommended_tracks = track_recommender.recommend_tracks(user_id)
         group_tracks = track_recommender.get_top_common_tracks_for_group(group_id)
         recommended_track_names = [track['track_name'] for track in recommended_tracks]
+        group_track_names = [track['name'] for track in group_tracks]
         advanced_group_tracks = track_recommender.get_top_advanced_tracks_for_group(group_id)
         advanced_group_track_info = [(track['level'], track['ordering_rank']) for track in advanced_group_tracks]
+
+        # Determine the user's, group's common, and advanced group's highest level and ordering rank
+        user_highest_info = max([(track['level'], track['ordering_rank']) for track in recommended_tracks],
+                                default=(0, 0))
+        group_highest_info = max([(track['level'], track['ordering_rank']) for track in advanced_group_tracks],
+                                 default=(0, 0))
+        group_common_info = max([(track['level'], track['ordering_rank']) for track in group_tracks], default=(0, 0))
+
+        # Check user's progress status
+        if user_highest_info in advanced_group_track_info and user_highest_info >= group_highest_info:
+            progress_status = "🏆 Leading the Way - Keep Soaring High!"
+        elif user_highest_info > group_common_info:
+            progress_status = "🚀 Excelling Ahead - Fantastic Progress!"
+        elif user_highest_info == group_common_info:
+            progress_status = "✅ Right on Track - Steady and Strong!"
+        else:
+            progress_status = "🌟 Time to Shine - Let's Catch Up!"
+
+        # Display progress status
+        st.markdown(f"<h4 style='font-size: 18px;'>Musical Growth Tracker: {progress_status}</h4>", unsafe_allow_html=True)
 
         column_widths = [22, 13, 13, 13, 13, 13, 13]
         list_builder = ListBuilder(column_widths)
 
         list_builder.build_header(
-            column_names=["Track", "Level", "Recordings", "Average Score", "Threshold", "Min Score",
-                          "Max Score"])
+            column_names=["Track", "Level", "Recordings", "Average Score", "Threshold", "Min Score", "Max Score"])
 
         # Define margin as 80% of the threshold
         margin = float(Decimal(0.8))
@@ -129,11 +149,10 @@ class ProgressDashboard:
 
         for track_detail in tracks:
             track_name = track_detail['track']['name']
-            track_level = track_detail['track']['level']
-            track_ordering_rank = track_detail['track']['ordering_rank']
             is_recommended = track_name in recommended_track_names
-            is_group_track = track_name in group_tracks
-            is_advanced_group_track = (track_level, track_ordering_rank) in advanced_group_track_info
+            is_group_track = track_name in group_track_names
+            is_advanced_group_track = (track_detail['track']['level'],
+                                       track_detail['track']['ordering_rank']) in advanced_group_track_info
 
             # Icon logic with fixed length
             icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 3
@@ -145,18 +164,17 @@ class ProgressDashboard:
                 icons[2] = "🔷"
             icons.append("&nbsp;&nbsp;")
 
-            icon_str = "".join(icons)
-
             row_data = {
-                "Track": f"{icon_str} {track_name}",
+                "Track": f"{''.join(icons)} {track_name}",
                 "Level": track_detail['track']['level'],
                 "Number of Recordings": track_detail['num_recordings'],
                 "Average Score": round(track_detail['avg_score'], 2),
                 "Threshold": round(track_detail['recommendation_threshold_score'], 2),
                 "Min Score": track_detail['min_score'],
                 "Max Score": track_detail['max_score'],
-                "is_recommended": is_recommended,  # Adding the is_recommended indicator
-                "is_group_track": is_group_track  # Adding the is_group_track indicator
+                "is_recommended": is_recommended,
+                "is_group_track": is_group_track,
+                "is_advanced_group_track": is_advanced_group_track
             }
             list_builder.build_row(row_data=row_data, criteria_colors=criteria_colors)
 

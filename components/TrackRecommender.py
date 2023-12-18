@@ -57,22 +57,29 @@ class TrackRecommender:
         user_ids = [user['user_id'] for user in users]
 
         # Dictionary to count the frequency of each track being recommended
-        track_recommendation_count = {}
+        track_recommendation_details = {}
 
         for user_id in user_ids:
             print("UserId:", user_id)
             recommended_tracks = self.recommend_tracks(user_id)
             for track in recommended_tracks:
                 track_name = track['track_name']
-                track_recommendation_count[track_name] = track_recommendation_count.get(track_name, 0) + 1
+                if track_name not in track_recommendation_details:
+                    track_recommendation_details[track_name] = {
+                        'count': 0,
+                        'level': track['level'],
+                        'ordering_rank': track['ordering_rank']
+                    }
+                track_recommendation_details[track_name]['count'] += 1
 
         # Sort tracks by their recommendation frequency
-        sorted_tracks = sorted(track_recommendation_count.items(), key=lambda x: x[1], reverse=True)
+        sorted_tracks = sorted(track_recommendation_details.items(), key=lambda x: x[1]['count'], reverse=True)
 
-        # Get the top 5 most common tracks
+        # Get the top 5 most common tracks with their details
         top_common_tracks = sorted_tracks[:5]
 
-        return [track[0] for track in top_common_tracks]
+        return [{'name': track[0], 'level': track[1]['level'], 'ordering_rank': track[1]['ordering_rank']}
+                for track in top_common_tracks]
 
     def get_top_advanced_tracks_for_group(self, group_id):
         # Get the list of user IDs in the group
