@@ -118,10 +118,10 @@ class ProgressDashboard:
         criteria_colors = [
             (lambda row: row['is_recommended'], "#ADD8E6"),
             (lambda row: row['is_group_track'], "#B0E0E6"),
-            (lambda row: float(row['Average Score']) >= float(row['Threshold']), "#93E353"),
+            (lambda row: float(row['Average Score']) >= float(row['Threshold']), "#C9FF9E"),
             (lambda row: float(row['Threshold']) * margin <= float(row['Average Score']) < float(row['Threshold']),
-             "#EAE185"),
-            (lambda row: float(row['Average Score']) < float(row['Threshold']) * margin, "#EE9F9F"),
+             "#FAF2A1"),
+            (lambda row: float(row['Average Score']) < float(row['Threshold']) * margin, "#F8B4B4"),
             (lambda row: float(row['Average Score']) == 0, "#FDFEFE"),
         ]
 
