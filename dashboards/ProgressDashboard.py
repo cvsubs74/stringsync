@@ -103,6 +103,8 @@ class ProgressDashboard:
         recommended_tracks = track_recommender.recommend_tracks(user_id)
         group_tracks = track_recommender.get_top_common_tracks_for_group(group_id)
         recommended_track_names = [track['track_name'] for track in recommended_tracks]
+        advanced_group_tracks = track_recommender.get_top_advanced_tracks_for_group(group_id)
+        advanced_group_track_info = [(track['level'], track['ordering_rank']) for track in advanced_group_tracks]
 
         column_widths = [18, 7, 15, 15, 15, 15, 15]
         list_builder = ListBuilder(column_widths)
@@ -127,17 +129,22 @@ class ProgressDashboard:
 
         for track_detail in tracks:
             track_name = track_detail['track']['name']
+            track_level = track_detail['track']['level']
+            track_ordering_rank = track_detail['track']['ordering_rank']
             is_recommended = track_name in recommended_track_names
             is_group_track = track_name in group_tracks
+            is_advanced_group_track = (track_level, track_ordering_rank) in advanced_group_track_info
 
             # Icon logic with fixed length
-            icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 2  # Initialize with two spaces (or as needed for alignment)
+            icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 3  # Initialize with three spaces for alignment
             if is_group_track:
                 icons[0] = "🔶"
             if is_recommended:
                 icons[1] = "🔷"
+            if is_advanced_group_track:
+                icons[2] = "♦️"
 
-            icon_str = "".join(icons)  # Join the icons or spaces into a single string
+            icon_str = "".join(icons)
 
             row_data = {
                 "Track": f"{icon_str} {track_name}",

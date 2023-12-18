@@ -146,7 +146,7 @@ class RecordingRepository:
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
         query = """
         SELECT t.id AS track_id, t.name AS name, t.level AS level, 
-               t.recommendation_threshold_score, 
+               t.recommendation_threshold_score, t.ordering_rank,
                COALESCE(COUNT(r.id), 0) AS num_recordings, 
                COALESCE(MAX(r.score), 0) AS max_score, 
                COALESCE(MIN(r.score), 0) AS min_score, 
@@ -154,7 +154,7 @@ class RecordingRepository:
         FROM tracks t
         LEFT JOIN recordings r ON t.id = r.track_id
         WHERE r.score < 10.00
-        GROUP BY t.id, t.name, t.level, t.recommendation_threshold_score
+        GROUP BY t.id, t.name, t.level, t.recommendation_threshold_score, t.ordering_rank
         ORDER BY t.level, t.ordering_rank;
         """
         cursor.execute(query)

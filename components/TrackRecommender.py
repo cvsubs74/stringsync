@@ -35,6 +35,8 @@ class TrackRecommender:
             if track_name not in user_avg_scores or user_avg_score < recommendation_threshold_score:
                 recommended_track_info = {
                     'track_name': track_name,
+                    'level': track_stat['level'],
+                    'ordering_rank': track_stat['ordering_rank'],
                     'user_avg_score': user_avg_score,
                     'user_max_score': user_max_score,
                     'overall_avg_score': overall_avg_score,
@@ -71,3 +73,25 @@ class TrackRecommender:
         top_common_tracks = sorted_tracks[:5]
 
         return [track[0] for track in top_common_tracks]
+
+    def get_top_advanced_tracks_for_group(self, group_id):
+        # Get the list of user IDs in the group
+        users = self.user_repo.get_users_by_group(group_id)
+        user_ids = [user['user_id'] for user in users]
+
+        # Set to store unique tracks (level, ordering_rank)
+        unique_tracks = set()
+
+        for user_id in user_ids:
+            recommended_tracks = self.recommend_tracks(user_id)
+            for track in recommended_tracks:
+                # Add level and ordering rank tuple to the set
+                unique_tracks.add((track['level'], track['ordering_rank']))
+
+        # Sort tracks first by level (descending) then by ordering rank (descending)
+        sorted_tracks = sorted(unique_tracks, key=lambda x: (-x[0], -x[1]))
+
+        # Get the top 5 most advanced tracks
+        top_advanced_tracks = sorted_tracks[:5]
+
+        return [{'level': track[0], 'ordering_rank': track[1]} for track in top_advanced_tracks]
