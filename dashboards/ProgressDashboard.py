@@ -124,14 +124,14 @@ class ProgressDashboard:
             if top_performer_id == user_id:
                 # Congratulatory message for the current user
                 progress_status = "<h4 style='font-size: 18px;'>🏆 You're the Top Performer - Leading the Way!</h4>" \
-                                  "<p style='font-size: 16px;'>Fantastic! You're at the forefront, leading the pack with " \
-                                  "those cool <span style='color: red;'>♦️</span> red diamonds. Keep up the amazing work " \
-                                  "and continue to set the pace for your friends!</p>"
+                                  "<p style='font-size: 16px;'>Fantastic! You're at the forefront, leading the pack " \
+                                  "with those cool <span style='color: red;'>♦️</span> red diamonds. Keep up the " \
+                                  "amazing work and continue to set the pace for your friends!</p>"
             else:
                 progress_status = "<h4 style='font-size: 18px;'>🏆 Top Performer - Keep Soaring High!</h4>" \
-                                  "<p style='font-size: 16px;'>You're leading the pack (indicated by the ♦️ red diamonds). " \
-                                  "You're hitting the advanced tracks that even the fastest learners in the group are " \
-                                  "working on. Amazing job!</p>"
+                                  "<p style='font-size: 16px;'>You're leading the pack (indicated by the ♦️ red " \
+                                  "diamonds). You're hitting the advanced tracks that even the fastest learners in " \
+                                  "the group are working on. Amazing job!</p>"
         elif user_highest_info > group_common_info:
             progress_status = "<h4 style='font-size: 18px;'>🚀 Excelling Ahead - Fantastic Progress!</h4>" \
                               "<p style='font-size: 16px;'>You're outpacing the average group progress " \
@@ -175,8 +175,8 @@ class ProgressDashboard:
             (lambda row: row['is_group_track'], "#B0E0E6"),
             (lambda row: float(row['Average Score']) >= float(row['Threshold']), "#C9FF9E"),
             (lambda row: float(row['Threshold']) * margin <= float(row['Average Score']) < float(row['Threshold']),
-             "#FAF2A1"),
-            (lambda row: float(row['Average Score']) < float(row['Threshold']) * margin, "#F8B4B4"),
+             "#FFF9B9"),
+            (lambda row: float(row['Average Score']) < float(row['Threshold']) * margin, "#FABFBF"),
             (lambda row: float(row['Average Score']) == 0, "#FDFEFE"),
         ]
 
