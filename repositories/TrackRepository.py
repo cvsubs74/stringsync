@@ -90,7 +90,8 @@ class TrackRepository:
         """, (track_id,))
         return [row[0] for row in cursor.fetchall()]
 
-    def add_track(self, name, track_path, track_ref_path, level, ragam_id, tags, description, offset, track_hash):
+    def add_track(self, name, track_path, track_ref_path, level, recommendation_threshold_score, ragam_id, tags,
+                  description, offset, track_hash):
         cursor = self.connection.cursor()
         cursor.execute("SELECT id FROM tracks WHERE name = %s", (name,))
         existing_track = cursor.fetchone()
@@ -98,15 +99,18 @@ class TrackRepository:
         if existing_track:
             cursor.execute("""
                 UPDATE tracks
-                SET track_path = %s, track_ref_path = %s, level = %s, ragam_id = %s, description = %s, offset = %s
+                SET track_path = %s, track_ref_path = %s, level = %s, recommendation_threshold_score = %s, ragam_id = %s, description = %s, offset = %s
                 WHERE name = %s
-            """, (track_path, track_ref_path, level, ragam_id, description, offset, name))
+            """, (
+                track_path, track_ref_path, level, recommendation_threshold_score, ragam_id, description, offset, name))
             track_id = existing_track[0]
         else:
             cursor.execute("""
-                INSERT INTO tracks (name, track_path, track_ref_path, level, ragam_id, description, offset, track_hash)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (name, track_path, track_ref_path, level, ragam_id, description, offset, track_hash))
+                INSERT INTO tracks (name, track_path, track_ref_path, level, recommendation_threshold_score, ragam_id, description, offset, track_hash)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                name, track_path, track_ref_path, level, recommendation_threshold_score, ragam_id, description, offset,
+                track_hash))
             track_id = cursor.lastrowid
 
         # Handle tags

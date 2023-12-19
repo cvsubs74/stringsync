@@ -93,7 +93,8 @@ class TeacherPortal(BasePortal, ABC):
     def get_model_generation_dashboard(self):
         return ModelGenerationDashboard(
             self.track_repo, self.recording_repo, self.portal_repo, self.storage_repo,
-            self.score_prediction_model_repo, self.model_performance_repo, self.audio_processor, self.get_models_bucket())
+            self.score_prediction_model_repo, self.model_performance_repo, self.audio_processor,
+            self.get_models_bucket())
 
     def get_score_predictor(self):
         return ScorePredictor(self.score_prediction_model_repo, self.track_repo,
@@ -523,25 +524,51 @@ class TeacherPortal(BasePortal, ABC):
                     "font-size: 28px;'> 🔊 Create Audio Tracks 🔊 </h2>", unsafe_allow_html=True)
         self.divider()
         with st.form(key='create_track_form', clear_on_submit=True):
-            track_name = st.text_input("Track Name")
-            track_file = st.file_uploader("Choose an audio file", type=["m4a", "mp3"])
-            ref_track_file = st.file_uploader("Choose a reference audio file", type=["m4a", "mp3"])
+            track_name = st.text_input("Track Name",
+                                       help="Enter the name of the track. This will be used to identify the track in "
+                                            "the system.")
 
-            description = st.text_input("Description")
+            track_file = st.file_uploader("Choose an audio file", type=["m4a", "mp3"],
+                                          help="Upload the audio file for the track. Acceptable formats: m4a, mp3.")
+
+            ref_track_file = st.file_uploader("Choose a Reference Audio File", type=["m4a", "mp3"],
+                                              help="Upload a reference audio file for the track. This audio should "
+                                                   "demonstrate how a student would ideally play along with the main "
+                                                   "track. It serves as a practical example for comparison and "
+                                                   "learning.")
+
+            description = st.text_input("Description",
+                                        help="Provide a brief description of the track. This could include its "
+                                             "significance, style, or any other relevant information.")
+
+            recommendation_threshold_score = st.number_input(
+                "Recommendation Threshold Score", min_value=5.0, max_value=10.0, step=0.1,
+                help="Set the score threshold for track recommendations. Tracks with average scores below this "
+                     "threshold will be recommended for further practice. Choose a value between 5.0 and 10.0 to "
+                     "tailor recommendations to your skill level.")
 
             ragas = self.raga_repo.get_all_ragas()
             ragam_options = {raga['name']: raga['id'] for raga in ragas}
-            selected_ragam = st.selectbox("Select Ragam",
-                                          ['--Select a Ragam--'] + list(ragam_options.keys()))
+            selected_ragam = st.selectbox("Select Ragam", ['--Select a Ragam--'] + list(ragam_options.keys()),
+                                          help="Choose a Ragam (melodic framework) for the track. This defines the "
+                                               "melodic structure and feel of the track.")
 
             # Existing tags
             tags = self.track_repo.get_all_tags()
-            selected_tags = st.multiselect("Select tags:", tags)
-            new_tags = st.text_input("Add new tags (comma-separated):")
+            selected_tags = st.multiselect("Select tags:", tags,
+                                           help="Choose from existing tags to categorize the track. Tags help in "
+                                                "organizing and searching for tracks.")
+
+            new_tags = st.text_input("Add new tags (comma-separated):",
+                                     help="Add new tags for the track. Separate multiple tags with commas. Tags are "
+                                          "keywords or labels that help in categorizing and finding tracks.")
             if new_tags:
                 new_tags = [tag.strip() for tag in new_tags.split(",")]
                 selected_tags.extend(new_tags)
-            level = st.selectbox("Select Level", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+            level = st.selectbox("Select Level", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                                 help="Select the difficulty level of the track. Level 1 is the easiest, and the "
+                                      "levels increase in difficulty.")
 
             if st.form_submit_button("Submit", type="primary"):
                 if self.validate_inputs(track_name, track_file, ref_track_file):
@@ -564,6 +591,7 @@ class TeacherPortal(BasePortal, ABC):
                         track_path=track_url,
                         track_ref_path=ref_track_url,
                         level=level,
+                        recommendation_threshold_score=recommendation_threshold_score,
                         ragam_id=ragam_id,
                         tags=selected_tags,
                         description=description,
