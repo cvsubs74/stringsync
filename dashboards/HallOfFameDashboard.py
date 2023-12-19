@@ -58,41 +58,40 @@ class HallOfFameDashboard:
 
                 winners_by_badge[badge].append(winner)
 
-            # Iterate through badges and display the winners
-            for badge, winners in winners_by_badge.items():
-                badge_enum = UserBadges.from_value(badge)
-                appreciation_note = badge_enum.message
+            # Check and display TRAILBLAZER badge first if it exists
+            trailblazer_key = UserBadges.WEEKLY_TRAILBLAZER.description
+            if trailblazer_key in winners_by_badge:
+                self.display_badge(winners_by_badge[trailblazer_key], trailblazer_key)
 
-                # Accumulate names of all winners for the current badge
-                winner_names = [winner['student_name'] for winner in winners]
-                value = winners[0]['value']
-
-                # Create a single congratulatory note for all winners of the badge
-                # Format the winner names as a comma-separated list with each name bolded
-                bolded_winner_names = ', '.join([f"<strong>{name}</strong>" for name in winner_names])
-
-                # Create the congratulatory note with bolded winner names
-                congratulatory_note = f"Congratulations {bolded_winner_names}!!! {appreciation_note}"
-
-                # Use columns to display the badge and congratulatory note side by side
-                col1, col2 = st.columns([1, 3])
-
-                with col1:
-                    # Display the badge image
-                    st.image(self.badge_awarder.get_badge(badge), width=150)
-
-                with col2:
-                    # Display the congratulatory note
-                    st.write("")
-                    st.write("")
-                    st.markdown(f"<span style='font-size: 20px;color:#954444;'>{congratulatory_note}</span>",
-                                unsafe_allow_html=True)
-                    st.markdown(f"<span style='font-size: 20px;color:#954444;'>{badge_enum.format_stats_info(value)}</span>",
-                                unsafe_allow_html=True)
-
-                st.write("")  # Add some space before the next badge
+            # Display other badges
+            for badge, winners_list in winners_by_badge.items():
+                if badge != trailblazer_key:
+                    self.display_badge(winners_list, badge)
 
             st.write("")
+        else:
+            st.markdown(f"<p style='font-size: 18px; color:#954444;'>No winners for this period.</p>",
+                        unsafe_allow_html=True)
+
+    def display_badge(self, winners_list, badge_key):
+        badge_enum = UserBadges.from_value(badge_key)
+        appreciation_note = badge_enum.message
+        winner_names = [winner['student_name'] for winner in winners_list]
+        value = winners_list[0]['value']
+        bolded_winner_names = ', '.join([f"<strong>{name}</strong>" for name in winner_names])
+        congratulatory_note = f"Congratulations {bolded_winner_names}!!! {appreciation_note}"
+
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.image(self.badge_awarder.get_badge(badge_key), width=150)
+
+        with col2:
+            st.write("")
+            st.write("")
+            st.markdown(f"<span style='font-size: 20px;color:#954444;'>{congratulatory_note}</span>",
+                        unsafe_allow_html=True)
+            st.markdown(f"<span style='font-size: 20px;color:#954444;'>{badge_enum.format_stats_info(value)}</span>",
+                        unsafe_allow_html=True)
 
     def get_winners(self, group_id, timeframe):
         cache_key = f"hall_of_fame_winners_{group_id}_{timeframe}"

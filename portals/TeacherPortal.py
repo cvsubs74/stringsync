@@ -10,6 +10,7 @@ from components.BadgeAwarder import BadgeAwarder
 from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
 from components.ScorePredictor import ScorePredictor
+from components.TrackRecommender import TrackRecommender
 from dashboards.AssignmentDashboard import AssignmentDashboard
 from dashboards.HallOfFameDashboard import HallOfFameDashboard
 from dashboards.MessageDashboard import MessageDashboard
@@ -40,10 +41,11 @@ class TeacherPortal(BasePortal, ABC):
         super().__init__()
         self.model_performance_repo = ModelPerformanceRepository(self.get_connection())
         self.audio_processor = AudioProcessor()
+        self.track_recommender = TrackRecommender(self.recording_repo, self.user_repo)
         self.badge_awarder = BadgeAwarder(
             self.settings_repo, self.recording_repo,
             self.user_achievement_repo, self.user_practice_log_repo,
-            self.portal_repo, self.storage_repo)
+            self.portal_repo, self.storage_repo, self.track_recommender)
         self.notes_repo = NotesRepository(self.get_connection())
         self.score_prediction_model_repo = ScorePredictionModelRepository(self.get_connection())
         self.student_assessment_dashboard_builder = StudentAssessmentDashboard(

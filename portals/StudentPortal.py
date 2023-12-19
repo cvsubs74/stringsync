@@ -40,10 +40,11 @@ class StudentPortal(BasePortal, ABC):
         super().__init__()
         self.score_prediction_model_repo = ScorePredictionModelRepository(self.get_connection())
         self.model_performance_repo = ModelPerformanceRepository(self.get_connection())
+        self.track_recommender = TrackRecommender(self.recording_repo, self.user_repo)
         self.badge_awarder = BadgeAwarder(
             self.settings_repo, self.recording_repo,
             self.user_achievement_repo, self.user_practice_log_repo,
-            self.portal_repo, self.storage_repo)
+            self.portal_repo, self.storage_repo, self.track_recommender)
         self.resource_dashboard_builder = ResourceDashboard(
             self.resource_repo, self.storage_repo)
 

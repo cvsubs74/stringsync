@@ -1,6 +1,7 @@
 import os
 import datetime
 
+from components.TrackRecommender import TrackRecommender
 from enums.Badges import UserBadges, TrackBadges
 from enums.TimeFrame import TimeFrame
 from repositories.PortalRepository import PortalRepository
@@ -17,13 +18,15 @@ class BadgeAwarder:
                  user_achievement_repo: UserAchievementRepository,
                  practice_log_repo: UserPracticeLogRepository,
                  portal_repo: PortalRepository,
-                 storage_repo: StorageRepository):
+                 storage_repo: StorageRepository,
+                 track_recommender: TrackRecommender):
         self.settings_repo = settings_repo
         self.recording_repo = recording_repo
         self.user_achievement_repo = user_achievement_repo
         self.practice_log_repo = practice_log_repo
         self.portal_repo = portal_repo
         self.storage_repo = storage_repo
+        self.track_recommender = track_recommender
 
     def auto_award_badge(self, user_id, practice_date):
         badge_awarded = False
@@ -50,6 +53,10 @@ class BadgeAwarder:
                 # Award the weekly badges to the students if they meet the threshold
                 self.user_achievement_repo.award_user_badge_by_time_frame(
                     stat['student_id'], badge_category, timeframe, stat['value'])
+        # Trailblazer badge award
+        top_performer_id = self.track_recommender.find_top_performer_in_group(group_id)
+        self.user_achievement_repo.award_user_badge_by_time_frame(
+            top_performer_id, UserBadges.WEEKLY_TRAILBLAZER, timeframe, 0)
         return True
 
     def award_track_badge(self, org_id, user_id, recording_id, badge: TrackBadges,

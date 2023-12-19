@@ -106,8 +106,6 @@ class ProgressDashboard:
         group_track_names = [track['name'] for track in group_tracks]
         advanced_group_tracks = track_recommender.get_top_advanced_tracks_for_group(group_id)
         advanced_group_track_info = [(track['level'], track['ordering_rank']) for track in advanced_group_tracks]
-        advanced_user_ids = [track['user_id'] for track in advanced_group_tracks]
-
         # Identify the top performer
         top_performer_id = max(advanced_group_tracks, key=lambda track: (track['level'], track['ordering_rank']),
                                default={'user_id': None})['user_id']

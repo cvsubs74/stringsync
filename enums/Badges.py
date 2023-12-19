@@ -50,6 +50,12 @@ class UserBadges(Enum):
         "Ten days of excellence! Your commitment is unmatched!",
         "You've achieved an incredible 10-day practice streak!"
     )
+    WEEKLY_TRAILBLAZER = (
+        "Trailblazer", 1,
+        "Lead the pack by conquering the most recommended tracks in a week.",
+        "You're blazing a trail with your rapid progress!",
+        "You've knocked off the most recommended tracks this week, earning the Weekly Trailblazer badge!"
+    )
     WEEKLY_MAX_PRACTICE_MINUTES = (
         "Practice Champ", 60,
         "Top the charts with the most practice minutes in a week.",

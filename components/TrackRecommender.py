@@ -103,3 +103,24 @@ class TrackRecommender:
 
         return [{'level': track[0], 'ordering_rank': track[1], 'user_id': track[2]}
                 for track in top_advanced_tracks]
+
+    def find_top_performer_in_group(self, group_id):
+        # Get top advanced tracks along with user IDs
+        top_advanced_tracks = self.get_top_advanced_tracks_for_group(group_id)
+
+        # Create a dictionary to count the frequency of advanced tracks per user
+        user_advanced_track_count = {}
+        for track in top_advanced_tracks:
+            user_id = track['user_id']
+            user_advanced_track_count[user_id] = user_advanced_track_count.get(user_id, 0) + 1
+
+        # Find the user with the most advanced tracks
+        top_performer_id = None
+        max_count = 0
+        for user_id, count in user_advanced_track_count.items():
+            if count > max_count:
+                max_count = count
+                top_performer_id = user_id
+
+        # Return the top performer's user ID
+        return top_performer_id

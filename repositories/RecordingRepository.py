@@ -47,7 +47,6 @@ class RecordingRepository:
     def add_recording(self, user_id, track_id, blob_name, blob_url, timestamp, duration, file_hash, analysis="",
                       remarks="", assignment_id=None):
         cursor = self.connection.cursor()
-        print("AssignmentId:", assignment_id)
         add_recording_query = """INSERT INTO recordings (user_id, track_id, blob_name, blob_url, timestamp, duration, 
                                                          file_hash, analysis, remarks, assignment_id)
                                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
