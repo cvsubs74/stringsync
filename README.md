@@ -20,12 +20,6 @@ Welcome to GuruShishya, a comprehensive music learning platform designed for bot
 - **Team Performance**: Monitor and reward team progress with badges and Hall of Fame recognition.
 - **Engagement Tools**: Message dashboard for communication and notes dashboard for personal annotations.
 
-## Technical Stack
-- **Languages**: Python
-- **Libraries**: Streamlit, Pandas, LangChain (for AzureOpenAI integration)
-- **Components**: Custom Streamlit components for specialized functionalities.
-- **Database Interaction**: Robust handling with SQL and cloud storage.
-
 ## Dashboards Overview
 Both portals offer a variety of dashboards to cater to different needs:
 - **Skills Dashboard**: Performance insights for students and teachers.
