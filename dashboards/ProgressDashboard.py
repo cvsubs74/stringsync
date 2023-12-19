@@ -152,7 +152,7 @@ class ProgressDashboard:
         # Additional message for top performer if not the current user
         if top_performer_id and top_performer_id != user_id:
             st.markdown(
-                f"<p style='font-size: 16px;'>Heads up, musical stars! One of your friends is racing ahead, "
+                f"<p style='font-size: 16px;'>Heads up! One of your friends is racing ahead, "
                 f"setting an exciting pace! See those cool <span style='color: red;'>♦️</span> red diamonds? "
                 f"They mark the tracks your friend is mastering. Think you can catch up or even zoom ahead? "
                 f"Let's turn up the music and show what you've got! 🎵🚀</p>",
