@@ -151,8 +151,7 @@ class RecordingRepository:
                COALESCE(MIN(r.score), 0) AS min_score, 
                COALESCE(AVG(r.score), 0) AS avg_score
         FROM tracks t
-        LEFT JOIN recordings r ON t.id = r.track_id
-        WHERE r.score < 10.00
+        LEFT JOIN recordings r ON t.id = r.track_id AND r.score < 10.00
         GROUP BY t.id, t.name, t.level, t.recommendation_threshold_score, t.ordering_rank
         ORDER BY t.level, t.ordering_rank;
         """
