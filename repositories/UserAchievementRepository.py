@@ -114,10 +114,17 @@ class UserAchievementRepository:
 
     def get_user_badges(self, user_id, time_frame: TimeFrame = TimeFrame.HISTORICAL):
         cursor = self.connection.cursor()
-        start_date, end_date = time_frame.get_date_range()
-        cursor.execute("SELECT badge FROM user_achievements "
-                       "WHERE user_id = %s AND timestamp BETWEEN %s AND %s",
-                       (user_id, start_date, end_date))
+
+        if time_frame == TimeFrame.HISTORICAL:
+            # For historical timeframe, fetch all records without timestamp constraint
+            cursor.execute("SELECT badge FROM user_achievements WHERE user_id = %s", (user_id,))
+        else:
+            # For other timeframes, apply the timestamp constraints
+            start_date, end_date = time_frame.get_date_range()
+            cursor.execute("SELECT badge FROM user_achievements "
+                           "WHERE user_id = %s AND timestamp BETWEEN %s AND %s",
+                           (user_id, start_date, end_date))
+
         badges = cursor.fetchall()
         return [badge[0] for badge in badges]
 
