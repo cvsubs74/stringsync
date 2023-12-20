@@ -417,10 +417,6 @@ class StudentPortal(BasePortal, ABC):
 
         self.get_skills_dashboard().build(self.get_user_id(), self.get_group_id())
         self.divider(5)
-        st.markdown("<h1 style='font-size: 20px;'>Badges Won</h1>", unsafe_allow_html=True)
-        self.get_badges_dashboard().show_badges_won(self.get_user_id())
-        st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
-        self.get_student_assessment_dashboard().show_assessment(self.get_user_id())
 
     def team_dashboard(self):
         st.markdown(f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; "

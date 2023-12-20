@@ -70,12 +70,15 @@ class BadgesDashboard:
                 badge_name = badge_dict['badge']
                 count = badge_dict['count']
                 badge_enum = UserBadges.from_value(badge_name) or TrackBadges.from_value(badge_name)
+
                 if badge_enum is None:
                     continue  # Skip if the badge is not found in either enum
-                col1, col2 = st.columns([1, 3])
+
+                col1, col2, col3 = st.columns([1, 3, 3])  # Adjust column sizes accordingly
                 with col1:
                     st.image(self.get_badge(badge_name), width=200)
                 with col2:
+                    st.write("")
                     st.write("")
                     st.write("")
                     st.markdown(f"<span style='font-size: 20px;color:#954444;'>{badge_enum.message}</span>",
@@ -84,6 +87,17 @@ class BadgesDashboard:
                         f"<span style='font-size: 20px;color:#954444;'>"
                         f"You have earned the _{badge_enum.description}_ badge **{count}** times!</span>",
                         unsafe_allow_html=True)
+                with col3:
+                    st.write("")
+                    st.write("")
+                    st.write("")
+                    badge_cols = st.columns(10)
+                    badge_idx = 0  # To keep track of the badge index
+
+                    for i in range(count):
+                        with badge_cols[badge_idx % 10]:
+                            st.image(self.get_badge(badge_name), width=50)
+                        badge_idx += 1
         else:
             st.markdown("### No Badges Yet 🎖️")
             st.markdown("""
