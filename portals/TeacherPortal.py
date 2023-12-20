@@ -24,6 +24,7 @@ from dashboards.TeamDashboard import TeamDashboard
 from enums.ActivityType import ActivityType
 from enums.Badges import TrackBadges
 from enums.Features import Features
+from enums.LearningModels import LearningModels
 from enums.Settings import Portal
 from enums.TimeFrame import TimeFrame
 from portals.BasePortal import BasePortal
@@ -684,6 +685,31 @@ class TeacherPortal(BasePortal, ABC):
         self.divider()
         self.get_model_generation_dashboard().build()
 
+        submission_ids = self.model_performance_repo.get_recent_influential_ids(
+            LearningModels.RandomForestRegressorScorePredictionModel.name)
+        self.display_submissions_by_track(submission_ids)
+
+    def display_submissions_by_track(self, submission_ids):
+        if submission_ids:
+            submissions = self.recording_repo.get_recordings_by_ids(submission_ids)
+
+            # Group submissions by track name
+            submissions_by_track = {}
+            for submission in submissions:
+                track_name = submission['track_name']
+                if track_name not in submissions_by_track:
+                    submissions_by_track[track_name] = []
+                submissions_by_track[track_name].append(submission)
+
+            # Display selectbox for track names
+            track_names = list(submissions_by_track.keys())
+            selected_track = st.selectbox("Select a Track", track_names)
+
+            # Display submissions for the selected track
+            if selected_track:
+                for submission in submissions_by_track[selected_track]:
+                    self.show_submission(submission)
+
     def fetch_filter_options(self, ragas):
         return {
             "Level": self.track_repo.get_all_levels(),
@@ -915,12 +941,14 @@ class TeacherPortal(BasePortal, ABC):
         self.check_and_update_distance_and_score(submission)
         with st.expander(expander_label):
             with st.form(key=f"submission_form_{submission['id']}"):
+                """
                 if submission['track_path']:
                     filename = self.storage_repo.download_blob_by_url(submission['track_path'])
                     st.markdown("<span style='font-size: 15px;'>Track:</span>", unsafe_allow_html=True)
                     st.audio(filename, format='dashboards/m4a')
                 else:
                     st.write("No dashboards data available.")
+                """
 
                 if submission['blob_url']:
                     filename = self.storage_repo.download_blob_by_name(submission['blob_name'])
@@ -931,15 +959,30 @@ class TeacherPortal(BasePortal, ABC):
 
                 score = st.text_input("Score", key=f"submission_score_{submission['id']}",
                                       value=submission['score'])
-                remarks = st.text_area("Remarks", key=f"submission_remarks_{submission['id']}")
+                remarks = st.text_area("Remarks",
+                                       key=f"submission_remarks_{submission['id']}",
+                                       value=submission["remarks"])
 
                 badge_options = [badge.value for badge in TrackBadges]
+
+                # Find the index of the badge name in the options list
+                default_index = next((index for index, badge in enumerate(TrackBadges)
+                                      if badge.description == submission["badge"]), -1)
+                if default_index >= 0:
+                    # Add 2 to the index to account for the '--Select a badge--' and 'N/A' options
+                    default_index += 2
+                else:
+                    # If no badge is found, default to '--Select a badge--'
+                    default_index = 0
+
                 selected_badge = st.selectbox("Select a badge", ['--Select a badge--', 'N/A'] + badge_options,
-                                              key=f"badge_{submission['id']}")
+                                              key=f"badge_{submission['id']}",
+                                              index=default_index)
 
                 # Checkbox for using the recording for model training
                 use_for_training = st.checkbox("Use this recording for model training?",
-                                               key=f"submission_training_{submission['id']}")
+                                               key=f"submission_training_{submission['id']}",
+                                               value=submission["is_training_data"])
                 # Submit button for the form
                 if st.form_submit_button("Submit", type="primary"):
                     # Check for required fields
@@ -1030,6 +1073,9 @@ class TeacherPortal(BasePortal, ABC):
 
         user_group = self.user_repo.get_group_by_user_id(selected_user_id)
         group_id = user_group['group_id']
+        avatar = self.user_repo.get_avatar(selected_user_id)
+        avatar_name = avatar['name']
+        self.show_avatar(avatar_name)
         self.get_progress_dashboard().build(selected_user_id, group_id)
         st.write("")
         st.write("")

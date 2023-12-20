@@ -41,7 +41,7 @@ class ScorePredictor:
         self.train(training_dataset)
         st.success("Model generation process completed.")
         # Evaluate model performance
-        self.evaluate_model_performance(training_dataset)
+        return self.evaluate_model_performance(training_dataset)
 
     def train(self, training_dataset):
         # Check if there is sufficient data
@@ -108,6 +108,7 @@ class ScorePredictor:
         x_test = x_test.applymap(float)
         y_test = y_test.astype(float)
 
+        influential_ids = []
         for model_type in LearningModels.get_enabled_models():
             model_path = self.get_score_prediction_model_path(model_type.name)
             model = self.model_storage_repo.load_model(model_path)
@@ -116,14 +117,52 @@ class ScorePredictor:
                 y_pred = y_pred.astype(float)
                 residuals = y_test - y_pred
                 metrics = self.get_evaluation_metrics(y_test, y_pred)
-                self.persist_model_performance(model_type.name, metrics)
-                # Residuals
-                # Pass IDs to the plotting functions
-                col1, col2 = st.columns(2)
+                # Display plots side by side
+                col1, col2, col3 = st.columns(3)
                 with col1:
                     self.plot_residuals(y_pred, residuals, ids_test)
                 with col2:
-                    self.plot_cooks_distance_leverage(x_train, y_train, ids_train)
+                    self.plot_cooks_distance(x_train, y_train, ids_train)
+                with col3:
+                    self.plot_leverage(x_train, y_train, ids_train)
+
+                # Identify influential IDs from training and testing data
+                influential_ids_train = self.identify_influential_ids(x_train, y_train, ids_train)
+                influential_ids_test = self.identify_influential_ids(x_test, y_test, ids_test)
+
+                # Consolidate and deduplicate IDs
+                influential_ids = list(set(influential_ids_train + influential_ids_test))
+                self.persist_model_performance(model_type.name, metrics, influential_ids)
+
+    @staticmethod
+    def identify_influential_ids(X, y, ids, residuals=None):
+        model = sm.OLS(y, sm.add_constant(X)).fit()
+        influence = model.get_influence()
+
+        # Cook's Distance
+        cooks_d = influence.cooks_distance[0]
+
+        # Leverage (hat values)
+        leverage = influence.hat_matrix_diag
+
+        # Set thresholds for Cook's distance, leverage, and residuals
+        cooks_d_threshold = 4 / len(X)
+        leverage_threshold = 2 * (X.shape[1] + 1) / len(X)
+        residual_threshold = 2 * np.std(residuals) if residuals is not None else None
+
+        # Identify high leverage, high Cook's distance, and high residual points
+        high_leverage_points = np.where(leverage > leverage_threshold)[0]
+        high_cooks_d_points = np.where(cooks_d > cooks_d_threshold)[0]
+        high_residual_points = np.where(abs(residuals) > residual_threshold)[0] if residuals is not None else []
+
+        # Combine the indices of influential points
+        influential_points = np.unique(
+            np.concatenate((high_leverage_points, high_cooks_d_points, high_residual_points)))
+
+        # Retrieve the recording IDs of these influential points
+        influential_ids = ids.iloc[influential_points].tolist()
+
+        return influential_ids
 
     @staticmethod
     def plot_residuals(y_pred, residuals, ids):
@@ -146,7 +185,7 @@ class ScorePredictor:
         plt.clf()
 
     @staticmethod
-    def plot_cooks_distance_leverage(X, y, ids):
+    def plot_cooks_distance(X, y, ids):
         model = sm.OLS(y, sm.add_constant(X)).fit()
         influence = model.get_influence()
 
@@ -160,14 +199,33 @@ class ScorePredictor:
 
         # Annotate each point with its ID
         for i, id_val in enumerate(ids):
-            plt.annotate(id_val, (i, c[i]))
+            plt.annotate(id_val, (i, c[i]), textcoords="offset points", xytext=(0, 10), ha='center')
 
         st.pyplot(plt)
         plt.clf()
 
-        # Leverage Plot
-        fig, ax = plt.subplots(figsize=(8, 4))  # Adjusted to smaller size
+    @staticmethod
+    def plot_leverage(X, y, ids):
+        model = sm.OLS(y, sm.add_constant(X)).fit()
+        fig, ax = plt.subplots(figsize=(8, 4))
         sm.graphics.plot_leverage_resid2(model, ax=ax)
+
+        # Get the leverage values
+        leverage = model.get_influence().hat_matrix_diag
+        # Get the residuals
+        residuals = model.resid
+
+        # Ensure 'ids' is aligned with 'residuals'
+        if len(ids) != len(residuals):
+            st.error("Mismatch in the length of IDs and residuals.")
+            return
+
+        # Annotate each point with its ID
+        for i, id_val in enumerate(ids):
+            # Leverage index might not align with residual index, so use .iloc
+            ax.annotate(id_val, (leverage[i], residuals.iloc[i]), textcoords="offset points", xytext=(0, 10),
+                        ha='center')
+
         st.pyplot(fig)
         plt.clf()
 
@@ -182,12 +240,9 @@ class ScorePredictor:
             'r2': r2_score(y_true, y_pred)
         }
 
-    def persist_model_performance(self, model, metrics):
+    def persist_model_performance(self, model, metrics, ids):
         """
         Persist the model performance metrics in the repository.
         """
         # Call the method from ModelPerformanceRepository to save these metrics
-        self.model_performance_repo.record_model_performance(model, metrics)
-
-
-
+        self.model_performance_repo.record_model_performance(model, metrics, ids)

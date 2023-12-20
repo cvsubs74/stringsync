@@ -39,10 +39,11 @@ class ModelGenerationDashboard:
 
     def build(self):
         # Button to trigger model generation
+        influential_submission_ids = []
         if st.button("Generate Models", type="primary"):
             self.score_predictor.build_models()
 
-        self.test_model()
+        # self.test_model()
         st.divider()
         self.show_model_performance()
 

@@ -107,16 +107,18 @@ class PortalRepository:
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
         query = """
             SELECT r.id, r.blob_name, r.blob_url, t.name as track_name, t.track_path, r.timestamp, r.duration,
-                   r.distance, t.offset, t.level,
-                   r.track_id, r.score, r.analysis, r.remarks, r.user_id, u.name as user_name, r.is_training_data                 
+                   r.distance, t.offset, t.level, r.track_id, r.score, r.analysis, r.remarks, 
+                   r.user_id, u.name as user_name, r.is_training_data,
+                   ua.badge, ua.value AS badge_value
             FROM recordings r
             JOIN tracks t ON r.track_id = t.id
             JOIN users u ON r.user_id = u.id
+            LEFT JOIN user_achievements ua ON r.id = ua.recording_id
         """
+        filters = []
+
         if is_unremarked:
-            filters = ["r.remarks IS NULL OR r.remarks = ''"]
-        else:
-            filters = []
+            filters.append("r.remarks IS NULL OR r.remarks = ''")
 
         if group_id is not None:
             filters.append("u.group_id = %s")
@@ -131,6 +133,7 @@ class PortalRepository:
             query += " WHERE " + " AND ".join(filters)
 
         query += " ORDER BY r.timestamp DESC"
+
         # Creating a tuple of parameters to pass to execute to prevent SQL injection
         params = tuple(filter(None, [group_id, user_id, track_id]))
 

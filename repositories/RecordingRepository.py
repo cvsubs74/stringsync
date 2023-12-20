@@ -73,6 +73,24 @@ class RecordingRepository:
         result = cursor.fetchone()
         return result[0] == 1
 
+    def get_recordings_by_ids(self, recording_ids):
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+        placeholders = ', '.join(['%s'] * len(recording_ids))
+        query = f"""
+            SELECT r.id, r.blob_name, r.blob_url, t.name AS track_name, t.track_path, r.timestamp, r.duration,
+                   r.distance, t.offset, t.level,
+                   r.track_id, r.score, r.analysis, r.remarks, r.user_id, u.name AS user_name, r.is_training_data,
+                   ua.badge, ua.value AS badge_value
+            FROM recordings r
+            JOIN tracks t ON r.track_id = t.id
+            JOIN users u ON r.user_id = u.id
+            LEFT JOIN user_achievements ua ON r.id = ua.recording_id
+            WHERE r.id IN ({placeholders});
+        """
+        cursor.execute(query, recording_ids)
+        results = cursor.fetchall()
+        return results
+
     def get_recordings_by_user_id_and_track_id(self, user_id, track_id, timezone='America/Los_Angeles'):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
         query = """
@@ -168,6 +186,7 @@ class RecordingRepository:
 
     def update_score_remarks_training(self, recording_id, score, remarks, use_for_training):
         """Update the score, remarks, and training flag for a recording."""
+        print(recording_id, score, remarks, use_for_training)
         cursor = self.connection.cursor()
 
         # SQL query to update the recording
