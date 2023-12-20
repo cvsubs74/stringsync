@@ -128,6 +128,29 @@ class UserAchievementRepository:
         badges = cursor.fetchall()
         return [badge[0] for badge in badges]
 
+    def get_user_badges_with_counts(self, user_id, time_frame: TimeFrame = TimeFrame.HISTORICAL):
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+
+        if time_frame == TimeFrame.HISTORICAL:
+            # For historical timeframe, fetch all records without timestamp constraint and count them
+            cursor.execute("""
+                SELECT badge, COUNT(*) as count 
+                FROM user_achievements 
+                WHERE user_id = %s 
+                GROUP BY badge
+                """, (user_id,))
+        else:
+            # For other timeframes, apply the timestamp constraints and count
+            start_date, end_date = time_frame.get_date_range()
+            cursor.execute("""
+                SELECT badge, COUNT(*) as count 
+                FROM user_achievements 
+                WHERE user_id = %s AND timestamp BETWEEN %s AND %s
+                GROUP BY badge
+                """, (user_id, start_date, end_date))
+
+        return cursor.fetchall()
+
     def get_badge_by_recording(self, recording_id):
         cursor = self.connection.cursor()
         cursor.execute(

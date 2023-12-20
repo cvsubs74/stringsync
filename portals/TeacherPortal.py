@@ -12,12 +12,13 @@ from components.RecordingUploader import RecordingUploader
 from components.ScorePredictor import ScorePredictor
 from components.TrackRecommender import TrackRecommender
 from dashboards.AssignmentDashboard import AssignmentDashboard
+from dashboards.BadgesDashboard import BadgesDashboard
 from dashboards.HallOfFameDashboard import HallOfFameDashboard
 from dashboards.MessageDashboard import MessageDashboard
 from dashboards.ModelGenerationDashboard import ModelGenerationDashboard
 from dashboards.NotesDashboard import NotesDashboard
 from dashboards.PracticeDashboard import PracticeDashboard
-from dashboards.ProgressDashboard import ProgressDashboard
+from dashboards.SkillsDashboard import SkillsDashboard
 from dashboards.ResourceDashboard import ResourceDashboard
 from dashboards.StudentAssessmentDashboard import StudentAssessmentDashboard
 from dashboards.TeamDashboard import TeamDashboard
@@ -58,8 +59,12 @@ class TeacherPortal(BasePortal, ABC):
         self.resource_dashboard_builder = ResourceDashboard(
             self.resource_repo, self.storage_repo)
 
-    def get_progress_dashboard(self):
-        return ProgressDashboard(
+    def get_badges_dashboard(self):
+        return BadgesDashboard(
+            self.settings_repo, self.user_achievement_repo, self.storage_repo)
+
+    def get_skills_dashboard(self):
+        return SkillsDashboard(
             self.settings_repo, self.recording_repo, self.user_achievement_repo,
             self.user_practice_log_repo, self.track_repo, self.assignment_repo, self.user_repo)
 
@@ -1076,15 +1081,15 @@ class TeacherPortal(BasePortal, ABC):
         avatar = self.user_repo.get_avatar(selected_user_id)
         avatar_name = avatar['name']
         self.show_avatar(avatar_name)
-        self.get_progress_dashboard().build(selected_user_id, group_id)
+        self.get_skills_dashboard().build(selected_user_id, group_id)
         st.write("")
         st.write("")
         st.write("")
         self.divider(2)
-        st.markdown("<h1 style='font-size: 20px;'>Practice Logs</h1>", unsafe_allow_html=True)
         self.get_practice_dashboard().build(selected_user_id)
         self.divider(2)
-        st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
+        self.get_badges_dashboard().show_badges_won(selected_user_id)
+        self.divider(2)
         self.student_assessment_dashboard_builder.show_assessment(selected_user_id)
 
     def assessments(self):

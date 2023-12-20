@@ -2,8 +2,10 @@ import os
 
 import streamlit as st
 
-from enums.Badges import UserBadges, TrackBadges
+from components.SoundEffectGenerator import SoundEffectGenerator
+from enums.Badges import UserBadges, TrackBadges, BaseBadge
 from enums.Settings import Settings
+from enums.SoundEffect import SoundEffect
 from repositories.SettingsRepository import SettingsRepository
 from repositories.StorageRepository import StorageRepository
 from repositories.UserAchievementRepository import UserAchievementRepository
@@ -20,16 +22,71 @@ class BadgesDashboard:
 
     def build(self, org_id, user_id):
         with st.spinner("Please wait.."):
-            badges = self.user_achievement_repo.get_user_badges(user_id)
-            if badges:  # If there are badges
-                cols = st.columns(5)
-                for i, badge in enumerate(badges):
-                    with cols[i % 5]:
-                        # Display the badge icon from the badge folder
-                        st.image(self.get_badge(badge), width=200)
-            else:  # If there are no badges
-                st.markdown("### No Badges Yet 🎖️")
-                st.markdown("""
+            self.show_badges_won(user_id)
+            st.write("")
+            self.divider()
+            self.show_all_badges(org_id)
+
+    def show_all_badges(self, org_id):
+        st.markdown(f"""
+                        <h2 style='text-align: center; color: {self.tab_heading_font_color(org_id)}; font-size: 24px;'>
+                            🌟 Discover the Treasure Trove of Badges! 🌟
+                        </h2>
+                        <p style='text-align: center; color: {self.tab_heading_font_color(org_id)}; font-size: 18px;'>
+                            🚀 Embark on an epic adventure and collect them all! 🚀
+                        </p>
+                        """, unsafe_allow_html=True)
+        all_badges = list(UserBadges) + list(TrackBadges)
+        # Create columns for badges
+        cols = st.columns(3)
+        for index, badge in enumerate(all_badges):
+            with cols[index % 3]:
+                st.markdown(f"### {badge.description}")
+                st.markdown(f"_{badge.criteria}_")
+                st.image(self.get_badge(badge.description), width=200)
+
+    def show_badges_won(self, user_id):
+        badge_counts = self.user_achievement_repo.get_user_badges_with_counts(user_id)
+
+        total_badges = sum(badge_dict['count'] for badge_dict in badge_counts)
+
+        if badge_counts:
+            # Determine the milestone message
+            if total_badges >= 10 and total_badges % 10 == 0:
+                SoundEffectGenerator(self.storage_repo).play_sound_effect(SoundEffect.AWARD)
+                milestone = total_badges
+                milestone_message = f"**Outstanding achievement!** You've reached the **{milestone}** badge **milestone**!"
+            else:
+                milestone_message = f"**Congratulations**! You have earned a total of **{total_badges}** badges."
+
+            st.markdown(
+                f"<span style='font-size: 22px;color:#954444;'>{milestone_message} 🎉</span>",
+                unsafe_allow_html=True)
+
+            st.write("")
+
+        if badge_counts:  # If there are badges
+            for badge_dict in badge_counts:
+                badge_name = badge_dict['badge']
+                count = badge_dict['count']
+                badge_enum = UserBadges.from_value(badge_name) or TrackBadges.from_value(badge_name)
+                if badge_enum is None:
+                    continue  # Skip if the badge is not found in either enum
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    st.image(self.get_badge(badge_name), width=200)
+                with col2:
+                    st.write("")
+                    st.write("")
+                    st.markdown(f"<span style='font-size: 20px;color:#954444;'>{badge_enum.message}</span>",
+                                unsafe_allow_html=True)
+                    st.markdown(
+                        f"<span style='font-size: 20px;color:#954444;'>"
+                        f"You have earned the _{badge_enum.description}_ badge **{count}** times!</span>",
+                        unsafe_allow_html=True)
+        else:
+            st.markdown("### No Badges Yet 🎖️")
+            st.markdown("""
                     **What Can You Do to Earn Badges?**
         
                     1. **Listen to Tracks**: The more you listen, the more you learn.
@@ -38,27 +95,6 @@ class BadgesDashboard:
         
                     Start by listening to a track and making your first recording today!
                 """)
-
-            st.write("")
-            self.divider()
-            st.markdown(f"""
-                        <h2 style='text-align: center; color: {self.tab_heading_font_color(org_id)}; font-size: 24px;'>
-                            🌟 Discover the Treasure Trove of Badges! 🌟
-                        </h2>
-                        <p style='text-align: center; color: {self.tab_heading_font_color(org_id)}; font-size: 18px;'>
-                            🚀 Embark on an epic adventure and collect them all! 🚀
-                        </p>
-                        """, unsafe_allow_html=True)
-
-            all_badges = list(UserBadges) + list(TrackBadges)
-
-            # Create columns for badges
-            cols = st.columns(3)
-            for index, badge in enumerate(all_badges):
-                with cols[index % 3]:
-                    st.markdown(f"### {badge.description}")
-                    st.markdown(f"_{badge.criteria}_")
-                    st.image(self.get_badge(badge.description), width=200)
 
     def get_badge(self, badge_name):
         # Directory where badges are stored locally
@@ -93,3 +129,4 @@ class BadgesDashboard:
     def tab_heading_font_color(self, org_id):
         self.settings_repo.get_setting(
             org_id, Settings.TAB_HEADING_FONT_COLOR)
+

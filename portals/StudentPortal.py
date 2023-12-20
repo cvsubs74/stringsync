@@ -11,6 +11,7 @@ from components.BadgeAwarder import BadgeAwarder
 from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
 from components.ScoreDisplay import ScoreDisplay
+from components.SoundEffectGenerator import SoundEffectGenerator
 from components.TimeConverter import TimeConverter
 from components.TrackRecommender import TrackRecommender
 from components.TrackScoringTrendsDisplay import TrackScoringTrendsDisplay
@@ -19,7 +20,7 @@ from dashboards.BadgesDashboard import BadgesDashboard
 from dashboards.HallOfFameDashboard import HallOfFameDashboard
 from dashboards.MessageDashboard import MessageDashboard
 from dashboards.PracticeDashboard import PracticeDashboard
-from dashboards.ProgressDashboard import ProgressDashboard
+from dashboards.SkillsDashboard import SkillsDashboard
 from dashboards.ResourceDashboard import ResourceDashboard
 from dashboards.StudentAssessmentDashboard import StudentAssessmentDashboard
 from dashboards.TeamDashboard import TeamDashboard
@@ -54,8 +55,8 @@ class StudentPortal(BasePortal, ABC):
             self.user_session_repo, self.score_prediction_model_repo, self.model_performance_repo,
             self.storage_repo, self.badge_awarder, AudioProcessor(), self.get_models_bucket())
 
-    def get_progress_dashboard(self):
-        return ProgressDashboard(
+    def get_skills_dashboard(self):
+        return SkillsDashboard(
             self.settings_repo, self.recording_repo, self.user_achievement_repo,
             self.user_practice_log_repo, self.track_repo, self.assignment_repo, self.user_repo)
 
@@ -178,8 +179,7 @@ class StudentPortal(BasePortal, ABC):
         with center_col:
             st_lottie(lottie_json, speed=1, width=400, height=200, loop=True, quality='high',
                       key="badge_awarded")
-            st.balloons()
-            self.play_sound_effect(SoundEffect.AWARD)
+            SoundEffectGenerator(self.storage_repo).play_sound_effect(SoundEffect.AWARD)
 
     def hall_of_fame(self):
         st.markdown(
@@ -415,8 +415,10 @@ class StudentPortal(BasePortal, ABC):
             </div>
             """, unsafe_allow_html=True)
 
-        self.get_progress_dashboard().build(self.get_user_id(), self.get_group_id())
+        self.get_skills_dashboard().build(self.get_user_id(), self.get_group_id())
         self.divider(5)
+        st.markdown("<h1 style='font-size: 20px;'>Badges Won</h1>", unsafe_allow_html=True)
+        self.get_badges_dashboard().show_badges_won(self.get_user_id())
         st.markdown("<h1 style='font-size: 20px;'>Report Card</h1>", unsafe_allow_html=True)
         self.get_student_assessment_dashboard().show_assessment(self.get_user_id())
 

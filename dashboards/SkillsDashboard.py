@@ -4,6 +4,7 @@ import streamlit as st
 
 from components.ListBuilder import ListBuilder
 from components.TrackRecommender import TrackRecommender
+from dashboards.BadgesDashboard import BadgesDashboard
 from repositories.AssignmentRepository import AssignmentRepository
 from repositories.RecordingRepository import RecordingRepository
 from repositories.SettingsRepository import SettingsRepository
@@ -16,7 +17,7 @@ import plotly.express as px
 from repositories.UserRepository import UserRepository
 
 
-class ProgressDashboard:
+class SkillsDashboard:
     def __init__(self,
                  settings_repo: SettingsRepository,
                  recording_repo: RecordingRepository,
