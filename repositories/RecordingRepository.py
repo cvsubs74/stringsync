@@ -147,13 +147,29 @@ class RecordingRepository:
                t.recommendation_threshold_score, 
                COALESCE(COUNT(*), 0) AS num_recordings, 
                COALESCE(MAX(r.score), 0) AS max_score, 
-               COALESCE(MIN(r.score), 0) AS min_score, 
-               COALESCE(AVG(r.score), 0) as avg_score
+               COALESCE(MIN(r.score), 0) AS min_score
         FROM recordings r
         LEFT JOIN tracks t ON r.track_id = t.id
         WHERE r.user_id = %s and r.score < 10.00
         GROUP BY r.track_id, t.name, t.recommendation_threshold_score
         ORDER BY t.level, t.ordering_rank;
+        """
+        cursor.execute(query, (user_id,))
+        results = cursor.fetchall()
+        return results
+
+    def get_average_track_scores_by_user(self, user_id):
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+        query = """
+        SELECT track_id, AVG(score) AS avg_score
+        FROM (
+            SELECT track_id, score,
+                   ROW_NUMBER() OVER (PARTITION BY track_id ORDER BY score DESC) as score_rank
+            FROM recordings
+            WHERE user_id = %s AND score < 10.00
+        ) AS ranked_scores
+        WHERE score_rank <= 3
+        GROUP BY track_id;
         """
         cursor.execute(query, (user_id,))
         results = cursor.fetchall()
@@ -166,12 +182,30 @@ class RecordingRepository:
                t.recommendation_threshold_score, t.ordering_rank,
                COALESCE(COUNT(r.id), 0) AS num_recordings, 
                COALESCE(MAX(r.score), 0) AS max_score, 
-               COALESCE(MIN(r.score), 0) AS min_score, 
-               COALESCE(AVG(r.score), 0) AS avg_score
+               COALESCE(MIN(r.score), 0) AS min_score
         FROM tracks t
         LEFT JOIN recordings r ON t.id = r.track_id AND r.score < 10.00
         GROUP BY t.id, t.name, t.level, t.recommendation_threshold_score, t.ordering_rank
         ORDER BY t.level, t.ordering_rank;
+        """
+        cursor.execute(query)
+        results = cursor.fetchall()
+        return results
+
+    def get_average_track_scores(self):
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+        query = """
+        SELECT track_id, 
+               AVG(score) AS avg_score
+        FROM (
+            SELECT track_id, 
+                   score,
+                   ROW_NUMBER() OVER (PARTITION BY track_id ORDER BY score DESC) as score_rank
+            FROM recordings
+            WHERE score < 10.00
+        ) AS ranked_scores
+        WHERE score_rank <= 10
+        GROUP BY track_id;
         """
         cursor.execute(query)
         results = cursor.fetchall()
@@ -186,7 +220,6 @@ class RecordingRepository:
 
     def update_score_remarks_training(self, recording_id, score, remarks, use_for_training):
         """Update the score, remarks, and training flag for a recording."""
-        print(recording_id, score, remarks, use_for_training)
         cursor = self.connection.cursor()
 
         # SQL query to update the recording

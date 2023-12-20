@@ -11,37 +11,39 @@ class TrackRecommender:
     def recommend_tracks(self, user_id):
         recommended_tracks = []
 
-        # Retrieve user-specific track statistics from the database
+        # Retrieve user-specific track statistics and average scores for each track
         user_track_stats = self.recording_repo.get_track_statistics_by_user(user_id)
+        user_avg_scores_by_track = self.recording_repo.get_average_track_scores_by_user(user_id)
+        user_avg_scores = {stat['track_id']: stat['avg_score'] for stat in user_avg_scores_by_track}
+        user_max_scores = {stat['track_id']: stat['max_score'] for stat in user_track_stats}
 
-        # Retrieve statistics for all tracks from the database
+        # Retrieve overall track statistics and average scores for all tracks
         all_track_stats = self.recording_repo.get_all_track_statistics()
+        all_avg_scores_by_track = self.recording_repo.get_average_track_scores()
+        all_avg_scores = {stat['track_id']: stat['avg_score'] for stat in all_avg_scores_by_track}
+        all_max_scores = {stat['track_id']: stat['max_score'] for stat in all_track_stats}
 
-        # Initialize a dictionary to store user's average scores for each track
-        user_avg_scores = {stat['name']: stat['avg_score'] for stat in user_track_stats}
-        user_max_scores = {stat['name']: stat['max_score'] for stat in user_track_stats}
-
-        # Iterate through tracks and recommend tracks based on the new conditions
+        # Iterate through tracks and recommend based on the new conditions
         for track_stat in all_track_stats:
+            track_id = track_stat['track_id']
             track_name = track_stat['name']
-            overall_avg_score = round(track_stat['avg_score'], 2)
-            top_score = round(track_stat['max_score'], 2)
-            recommendation_threshold_score = round(track_stat['recommendation_threshold_score'], 2)
+            user_avg_score = user_avg_scores.get(track_id, 0)
+            user_max_score = user_max_scores.get(track_id, 0)
+            overall_avg_score = all_avg_scores.get(track_id, 0)
+            overall_max_score = all_max_scores.get(track_id, 0)
+            recommendation_threshold_score = track_stat['recommendation_threshold_score']
 
-            # Check if the user has no recordings for this track
-            # or if the user's average score for this track is below the threshold
-            user_avg_score = round(user_avg_scores.get(track_name, 0), 2)
-            user_max_score = round(user_max_scores.get(track_name, 0), 2)
-            if track_name not in user_avg_scores or user_avg_score < recommendation_threshold_score:
+            # Check if the user's average score for this track is below the threshold
+            if user_avg_score < recommendation_threshold_score:
                 recommended_track_info = {
                     'track_name': track_name,
                     'level': track_stat['level'],
                     'ordering_rank': track_stat['ordering_rank'],
-                    'user_avg_score': user_avg_score,
-                    'user_max_score': user_max_score,
-                    'overall_avg_score': overall_avg_score,
-                    'overall_max_score': top_score,
-                    'threshold_score': recommendation_threshold_score
+                    'user_avg_score': round(user_avg_score, 2),
+                    'user_max_score': round(user_max_score, 2),
+                    'overall_avg_score': round(overall_avg_score, 2),
+                    'overall_max_score': round(overall_max_score, 2),
+                    'threshold_score': round(recommendation_threshold_score, 2)
                 }
                 recommended_tracks.append(recommended_track_info)
 
@@ -60,7 +62,6 @@ class TrackRecommender:
         track_recommendation_details = {}
 
         for user_id in user_ids:
-            print("UserId:", user_id)
             recommended_tracks = self.recommend_tracks(user_id)
             for track in recommended_tracks:
                 track_name = track['track_name']

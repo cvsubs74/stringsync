@@ -69,6 +69,8 @@ class ProgressDashboard:
     def get_tracks(self, user_id):
         # Fetch user-specific track statistics
         user_track_statistics = self.recording_repo.get_track_statistics_by_user(user_id)
+        user_avg_scores_by_track = self.recording_repo.get_average_track_scores_by_user(user_id)
+        user_avg_scores = {stat['track_id']: stat['avg_score'] for stat in user_avg_scores_by_track}
         track_statistics = self.recording_repo.get_all_track_statistics()
 
         # Get the highest level the user has attempted
@@ -89,7 +91,7 @@ class ProgressDashboard:
                 'track': track,
                 'recommendation_threshold_score': track.get('recommendation_threshold_score', 0),
                 'num_recordings': stats_dict.get(track['track_id'], {}).get('num_recordings', 0),
-                'avg_score': stats_dict.get(track['track_id'], {}).get('avg_score', 0),
+                'avg_score': user_avg_scores.get(track['track_id'], 0),
                 'min_score': stats_dict.get(track['track_id'], {}).get('min_score', 0),
                 'max_score': stats_dict.get(track['track_id'], {}).get('max_score', 0)
             }
