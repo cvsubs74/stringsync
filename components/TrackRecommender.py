@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from repositories.RecordingRepository import RecordingRepository
 from repositories.UserRepository import UserRepository
 
@@ -16,6 +18,14 @@ class TrackRecommender:
         user_avg_scores_by_track = self.recording_repo.get_average_track_scores_by_user(user_id)
         user_avg_scores = {stat['track_id']: stat['avg_score'] for stat in user_avg_scores_by_track}
         user_max_scores = {stat['track_id']: stat['max_score'] for stat in user_track_stats}
+        user_days_on_tracks = {
+            stat['track_id']: (stat['latest_recording_date'] - stat['earliest_recording_date']).days
+            for stat in user_track_stats if stat['earliest_recording_date'] and stat['latest_recording_date']
+        }
+
+        # Fetch latest remarks for all tracks recorded by the user
+        last_remarks_data = self.recording_repo.get_latest_recording_remarks_by_user(user_id)
+        last_remarks_map = {item['track_id']: item['latest_remarks'] for item in last_remarks_data}
 
         # Retrieve overall track statistics and average scores for all tracks
         all_track_stats = self.recording_repo.get_all_track_statistics()
@@ -26,24 +36,18 @@ class TrackRecommender:
         # Iterate through tracks and recommend based on the new conditions
         for track_stat in all_track_stats:
             track_id = track_stat['track_id']
-            track_name = track_stat['name']
-            user_avg_score = user_avg_scores.get(track_id, 0)
-            user_max_score = user_max_scores.get(track_id, 0)
-            overall_avg_score = all_avg_scores.get(track_id, 0)
-            overall_max_score = all_max_scores.get(track_id, 0)
-            recommendation_threshold_score = track_stat['recommendation_threshold_score']
-
-            # Check if the user's average score for this track is below the threshold
-            if user_avg_score < recommendation_threshold_score:
+            if user_avg_scores.get(track_id, 0) < track_stat['recommendation_threshold_score']:
                 recommended_track_info = {
-                    'track_name': track_name,
+                    'track_name': track_stat['name'],
                     'level': track_stat['level'],
                     'ordering_rank': track_stat['ordering_rank'],
-                    'user_avg_score': round(user_avg_score, 2),
-                    'user_max_score': round(user_max_score, 2),
-                    'overall_avg_score': round(overall_avg_score, 2),
-                    'overall_max_score': round(overall_max_score, 2),
-                    'threshold_score': round(recommendation_threshold_score, 2)
+                    'user_avg_score': round(user_avg_scores.get(track_id, 0), 2),
+                    'user_max_score': round(user_max_scores.get(track_id, 0), 2),
+                    'overall_avg_score': round(all_avg_scores.get(track_id, 0), 2),
+                    'overall_max_score': round(all_max_scores.get(track_id, 0), 2),
+                    'threshold_score': round(track_stat['recommendation_threshold_score'], 2),
+                    'days_on_track': user_days_on_tracks.get(track_id, 0),
+                    'last_remark': last_remarks_map.get(track_id, "")
                 }
                 recommended_tracks.append(recommended_track_info)
 

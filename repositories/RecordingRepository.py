@@ -147,7 +147,9 @@ class RecordingRepository:
                t.recommendation_threshold_score, 
                COALESCE(COUNT(*), 0) AS num_recordings, 
                COALESCE(MAX(r.score), 0) AS max_score, 
-               COALESCE(MIN(r.score), 0) AS min_score
+               COALESCE(MIN(r.score), 0) AS min_score,
+               MIN(r.timestamp) AS earliest_recording_date,
+               MAX(r.timestamp) AS latest_recording_date
         FROM recordings r
         LEFT JOIN tracks t ON r.track_id = t.id
         WHERE r.user_id = %s and r.score < 10.00
@@ -340,5 +342,41 @@ class RecordingRepository:
         cursor.execute(query, (user_id, start_date, end_date))
         results = cursor.fetchall()
         return list(results) if results else []
+
+    def get_latest_recording_remarks_by_user(self, user_id, track_ids=None):
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+
+        # Base query
+        query = """
+        SELECT r.track_id, t.name AS track_name, r.remarks AS latest_remarks, r.timestamp AS latest_recording_date
+        FROM recordings r
+        JOIN tracks t ON r.track_id = t.id
+        WHERE r.user_id = %s
+        """
+
+        # Adding condition for specific track IDs if provided
+        if track_ids:
+            placeholders = ', '.join(['%s'] * len(track_ids))
+            query += f"AND r.track_id IN ({placeholders}) "
+
+        query += """
+        AND r.timestamp = (
+            SELECT MAX(timestamp)
+            FROM recordings 
+            WHERE user_id = %s AND track_id = r.track_id
+        )
+        ORDER BY r.timestamp DESC;
+        """
+
+        # Execute query with or without track_ids
+        if track_ids:
+            cursor.execute(query, (user_id, *track_ids, user_id))
+        else:
+            cursor.execute(query, (user_id, user_id))
+
+        results = cursor.fetchall()
+        return results
+
+
 
 

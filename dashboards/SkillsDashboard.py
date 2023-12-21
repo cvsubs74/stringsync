@@ -182,6 +182,7 @@ class SkillsDashboard:
         ]
 
         for track_detail in tracks:
+            track_id = track_detail['track']['track_id']
             track_name = track_detail['track']['name']
             is_recommended = track_name in recommended_track_names
             is_group_track = track_name in group_track_names
@@ -198,6 +199,7 @@ class SkillsDashboard:
                 icons[2] = "🔷"
             icons.append("&nbsp;&nbsp;")
 
+            # Retrieve days on track for the current track
             row_data = {
                 "Track": f"{''.join(icons)} {track_name}",
                 "Level": track_detail['track']['level'],

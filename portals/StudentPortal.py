@@ -215,14 +215,11 @@ class StudentPortal(BasePortal, ABC):
         with st.spinner("Please wait.."):
             track_audio_path = self.download_to_temp_file_by_url(track['track_path'])
             track_ref_audio_path = self.download_to_temp_file_by_url(track['track_ref_path'])
-        load_recordings = False
         col1, col2, col3 = st.columns([5, 5, 5])
         recording_uploader = self.get_recording_uploader()
         with col1:
             self.display_track_files(f"Track: {selected_track_name}", track_audio_path)
             self.display_track_files("Reference Track", track_ref_audio_path)
-            if st.button("Load Recordings", type="primary"):
-                load_recordings = True
 
         with col2:
             uploaded, badge_awarded, recording_id, recording_audio_path = \
@@ -243,9 +240,8 @@ class StudentPortal(BasePortal, ABC):
         if badge_awarded:
             self.show_animations()
 
-        if load_recordings:
-            recordings = self.recordings(track['id'])
-            TrackScoringTrendsDisplay().show(recordings)
+        recordings = self.recordings(track['id'])
+        TrackScoringTrendsDisplay().show(recordings)
 
         if uploaded:
             os.remove(recording_audio_path)
