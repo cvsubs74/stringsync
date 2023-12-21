@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import streamlit as st
@@ -9,23 +10,76 @@ from enums.SoundEffect import SoundEffect
 from repositories.SettingsRepository import SettingsRepository
 from repositories.StorageRepository import StorageRepository
 from repositories.UserAchievementRepository import UserAchievementRepository
+from repositories.UserSessionRepository import UserSessionRepository
 
 
 class BadgesDashboard:
     def __init__(self,
                  settings_repo: SettingsRepository,
                  user_achievement_repo: UserAchievementRepository,
+                 user_session_repo: UserSessionRepository,
                  storage_repo: StorageRepository):
         self.settings_repo = settings_repo
         self.user_achievement_repo = user_achievement_repo
+        self.user_session_repo = user_session_repo
         self.storage_repo = storage_repo
 
     def build(self, org_id, user_id):
         with st.spinner("Please wait.."):
+            self.show_badge_notifications(user_id)
+            st.write("")
             self.show_badges_won(user_id)
             st.write("")
             self.divider()
             self.show_all_badges(org_id)
+
+    def show_badge_notifications(self, user_id):
+        last_activity_time = self.get_last_activity_time(user_id)
+        if not last_activity_time:
+            return
+
+        recent_achievements = self.user_achievement_repo.get_user_achievements_after_timestamp(
+            user_id, self.get_last_activity_time(user_id))
+
+        if recent_achievements:
+            # Play sound effect for new achievements
+            SoundEffectGenerator(self.storage_repo).play_sound_effect(SoundEffect.AWARD)
+
+            st.markdown(f"<span style='font-size: 22px;color:#954444;'>🌟🎊 **Eureka!!!** You have won new badges! "
+                        f"🥳🌟</span>",
+                        unsafe_allow_html=True)
+            for achievement in recent_achievements:
+                badge_name = achievement['badge']
+                track_name = achievement.get('track_name')  # Get the track name if available
+                badge_enum = UserBadges.from_value(badge_name) or TrackBadges.from_value(badge_name)
+
+                if badge_enum is None:
+                    continue
+
+                col1, col2 = st.columns([1, 6])  # Adjust column sizes accordingly
+                with col1:
+                    st.image(self.get_badge(badge_name), width=150)
+                with col2:
+                    st.write("")
+                    st.write("")
+                    st.write("")
+                    st.write("")
+                    track_info = f" - Earned for **{track_name}**" if track_name else ""
+                    st.markdown(f"<span style='font-size: 20px;color:#954444;'>**{badge_name}**{track_info}</span>",
+                                unsafe_allow_html=True)
+
+    def get_last_activity_time(self, user_id):
+        user_last_activity = self.user_session_repo.get_user_last_activity_time(user_id)
+        session_last_activity = st.session_state.get("last_activity_time")
+
+        if user_last_activity is None and session_last_activity is None:
+            return None  # If both are None, return None
+        elif user_last_activity is None:
+            return session_last_activity  # If only user_last_activity is None
+        elif session_last_activity is None:
+            return user_last_activity  # If only session_last_activity is None
+        else:
+            return min(user_last_activity, session_last_activity)  # If both are available
 
     def show_all_badges(self, org_id):
         st.markdown(f"""
@@ -46,14 +100,18 @@ class BadgesDashboard:
                 st.image(self.get_badge(badge.description), width=200)
 
     def show_badges_won(self, user_id):
-        badge_counts = self.user_achievement_repo.get_user_badges_with_counts(user_id)
+        if 'milestone_sound_played' not in st.session_state:
+            st.session_state['milestone_sound_played'] = False
 
+        badge_counts = self.user_achievement_repo.get_user_badges_with_counts(user_id)
         total_badges = sum(badge_dict['count'] for badge_dict in badge_counts)
 
         if badge_counts:
             # Determine the milestone message
-            if total_badges >= 10 and total_badges % 10 == 0:
+            if total_badges >= 10 and total_badges % 10 == 0 and \
+                    not st.session_state['milestone_sound_played']:
                 SoundEffectGenerator(self.storage_repo).play_sound_effect(SoundEffect.AWARD)
+                st.session_state['milestone_sound_played'] = True
                 milestone = total_badges
                 milestone_message = f"**Outstanding achievement!** You've reached the **{milestone}** badge **milestone**!"
             else:

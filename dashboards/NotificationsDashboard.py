@@ -13,7 +13,6 @@ class NotificationsDashboard:
         # Fetch new notifications since the last activity time
         notifications = self.portal_repo.get_notifications(
             user_id, group_id, org_id, last_activity_time)
-        print(notifications)
         # Display each notification
         messages = []
         for notification in notifications:

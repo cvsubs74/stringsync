@@ -217,3 +217,23 @@ class UserSessionRepository:
                        (user_id, start_date, end_date))
         return cursor.fetchall()
 
+    def get_user_last_activity_time(self, user_id):
+        cursor = self.connection.cursor()
+        query = """
+            SELECT last_activity_time
+            FROM user_sessions
+            WHERE user_id = %s AND session_duration > 5
+            ORDER BY last_activity_time DESC
+            LIMIT 1
+        """
+        cursor.execute(query, (user_id,))
+        result = cursor.fetchone()
+
+        # Close the cursor after use
+        cursor.close()
+
+        # Return the last activity time from the previous session if it exists, otherwise None
+        return result[0] if result else None
+
+
+

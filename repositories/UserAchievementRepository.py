@@ -18,8 +18,10 @@ class UserAchievementRepository:
                 recording_id INT NULL,
                 badge VARCHAR(255),
                 value INT DEFAULT 0,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            ); """
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                award_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """
         cursor.execute(create_table_query)
         self.connection.commit()
 
@@ -172,3 +174,20 @@ class UserAchievementRepository:
                        (user_id, start_date, end_date))
         results = cursor.fetchall()
         return list(results) if results else []
+
+    def get_user_achievements_after_timestamp(self, user_id, timestamp):
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+
+        query = """
+        SELECT ua.*, t.name AS track_name
+        FROM user_achievements ua
+        LEFT JOIN recordings r ON ua.recording_id = r.id
+        LEFT JOIN tracks t ON r.track_id = t.id
+        WHERE ua.user_id = %s AND ua.award_timestamp >= %s
+        """
+        cursor.execute(query, (user_id, timestamp))
+
+        results = cursor.fetchall()
+        return list(results) if results else []
+
+

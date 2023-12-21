@@ -80,7 +80,7 @@ class StudentPortal(BasePortal, ABC):
 
     def get_badges_dashboard(self):
         return BadgesDashboard(
-            self.settings_repo, self.user_achievement_repo, self.storage_repo)
+            self.settings_repo, self.user_achievement_repo, self.user_session_repo, self.storage_repo)
 
     def get_student_assessment_dashboard(self):
         return StudentAssessmentDashboard(

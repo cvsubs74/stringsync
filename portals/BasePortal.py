@@ -108,6 +108,7 @@ class BasePortal(ABC):
             st.session_state['group_id'] = user['group_id']
             last_activity_time = self.user_session_repo.get_last_activity_time(
                 self.get_session_id())
+            st.session_state["last_activity_time"] = last_activity_time
             self.show_notifications(last_activity_time)
             self.user_session_repo.update_last_activity_time(self.get_session_id())
         else:
@@ -368,6 +369,7 @@ class BasePortal(ABC):
                     # Check for notifications after the last session
                     last_activity_time = self.user_session_repo.get_last_activity_time(
                         previous_session_id)
+                    st.session_state["last_activity_time"] = last_activity_time
                     self.show_notifications(last_activity_time)
                 st.rerun()
             else:
@@ -402,6 +404,7 @@ class BasePortal(ABC):
                             # Check for notifications after the last session
                             last_activity_time = self.user_session_repo.get_last_activity_time(
                                 previous_session_id)
+                            st.session_state["last_activity_time"] = last_activity_time
                             self.show_notifications(last_activity_time)
                         st.rerun()
                     else:
