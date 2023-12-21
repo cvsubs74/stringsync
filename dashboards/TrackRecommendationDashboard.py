@@ -63,6 +63,8 @@ class TrackRecommendationDashboard:
                 else:
                     st.success(f"**Your Avg. Score: {track_info['user_avg_score']}**", icon="📊")
 
+                st.info(f"**Track Avg. Score: {track_info['overall_avg_score']}**", icon="⭐")
+
                 # Convert 0.8 to a Decimal before multiplication
                 max_score_80_percent = track_info['overall_max_score'] * Decimal('0.8')
 
@@ -72,10 +74,9 @@ class TrackRecommendationDashboard:
                 else:
                     st.success(f"**Your Top Score: {track_info['user_max_score']}**", icon="🚀")
 
-                # Display remaining information using st.info
-                st.info(f"**Overall Avg. Score: {track_info['overall_avg_score']}**", icon="⭐")
-                st.info(f"**Top Score: {track_info['overall_max_score']}**", icon="🥇")
-                st.info(f"**Threshold Avg. Score: {track_info['threshold_score']}**", icon="🎯")
+                st.info(f"**Track Top Score: {track_info['overall_max_score']}**", icon="🥇")
+
+                st.info(f"**Track Threshold Score: {track_info['threshold_score']}**", icon="🎯")
 
                 # Days on Track with color coding
                 if track_info['days_on_track'] > 5:
@@ -85,7 +86,44 @@ class TrackRecommendationDashboard:
 
                 st.success(f"**Last Remark: {track_info['last_remark']}**", icon="💬")
 
-                # Display button with creative emoji for track selection
+                # Build and display the summary
+                if track_info['user_avg_score'] == 0:
+                    st.info(
+                        "**Assessment**: No recordings uploaded. Start working on this track to see improvement and "
+                        "gain insights.",
+                        icon="📝")
+                else:
+                    # Assess performance and days on track
+                    if track_info['user_avg_score'] < threshold_80_percent or \
+                            track_info['user_max_score'] < max_score_80_percent:
+                        performance_issue = True
+                    else:
+                        performance_issue = False
+
+                    if track_info['days_on_track'] > 10:
+                        st.error(
+                            "**Assessment**: Considerable time spent with limited progress. Review the basics or seek professional guidance.",
+                            icon="📝")
+                    elif track_info['days_on_track'] > 5:
+                        if performance_issue:
+                            st.warning(
+                                "**Assessment**: Performance below par, and track challenging. Seek additional help or revisit fundamentals.",
+                                icon="📝")
+                        else:
+                            st.warning(
+                                "**Assessment**: Making progress, but review challenging parts. Time spent exceeds usual learning curve.",
+                                icon="📝")
+                    else:
+                        if performance_issue:
+                            st.warning(
+                                "**Assessment**: Scores below threshold. Focus on improving weak areas to meet expected standards.",
+                                icon="📝")
+                        else:
+                            st.success(
+                                "**Assessment**: Good progress and on the right track. Continue your efforts to maintain the momentum.",
+                                icon="📝")
+
+                # Select button
                 if st.button(f"🌟 Select 🌟", key=f"btn_{i}", type="primary"):
                     selected_track_name = track_info['track_name']
 
@@ -97,4 +135,3 @@ class TrackRecommendationDashboard:
         st.markdown(f"<hr style='height:{height}px; "
                     f"margin-top: 0;  margin-bottom: 0; border-width:0; background: lightblue;'>",
                     unsafe_allow_html=True)
-
