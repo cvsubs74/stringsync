@@ -43,20 +43,19 @@ class TrackRecommendationDashboard:
                     unsafe_allow_html=True)
                 self.divider(2)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌟 <b>Your Avg. Score:</b> "
-                    f"{track_info['user_avg_score']}</span>",
+                    f"<span style='color: black; font-size: 16px;'>🌟 <b>Level:</b> {track_info['level']}</span>",
                     unsafe_allow_html=True)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>🌟 <b>Your Top Score:</b> "
-                    f"{track_info['user_max_score']}</span>",
+                    f"<span style='color: black; font-size: 16px;'>📊 <b>Your Avg. Score:</b> {track_info['user_avg_score']}</span>",
                     unsafe_allow_html=True)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>⭐ <b>Overall Avg. Score:</b> "
-                    f"{track_info['overall_avg_score']}</span>",
+                    f"<span style='color: black; font-size: 16px;'>🚀 <b>Your Top Score:</b> {track_info['user_max_score']}</span>",
                     unsafe_allow_html=True)
                 st.markdown(
-                    f"<span style='color: black; font-size: 16px;'>⭐ <b>Top Score:</b> "
-                    f"{track_info['overall_max_score']}</span>",
+                    f"<span style='color: black; font-size: 16px;'>⭐ <b>Overall Avg. Score:</b> {track_info['overall_avg_score']}</span>",
+                    unsafe_allow_html=True)
+                st.markdown(
+                    f"<span style='color: black; font-size: 16px;'>🥇 <b>Top Score:</b> {track_info['overall_max_score']}</span>",
                     unsafe_allow_html=True)
 
                 st.markdown(
