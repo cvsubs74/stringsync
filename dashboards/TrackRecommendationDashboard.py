@@ -77,7 +77,9 @@ class TrackRecommendationDashboard:
                 max_score_80_percent = track_info['overall_max_score'] * Decimal('0.8')
 
                 # Your Top Score compared to Overall Top Score
-                if track_info['user_max_score'] < max_score_80_percent:
+                if track_info['user_avg_score'] == 0:
+                    st.info(f"**Your Top Score: {track_info['user_max_score']}**", icon="🚀")
+                elif track_info['user_max_score'] < max_score_80_percent:
                     st.error(f"**Your Top Score: {track_info['user_max_score']}**", icon="🚀")
                 else:
                     st.success(f"**Your Top Score: {track_info['user_max_score']}**", icon="🚀")
@@ -92,7 +94,7 @@ class TrackRecommendationDashboard:
                 else:
                     st.info(f"**Days on Track: {track_info['days_on_track']}**", icon="📅")
 
-                st.success(f"**Last Remark: {track_info['last_remark']}**", icon="💬")
+                st.info(f"**Last Remark: {track_info['last_remark']}**", icon="💬")
 
                 # Build and display the summary
                 if track_info['user_avg_score'] == 0:
