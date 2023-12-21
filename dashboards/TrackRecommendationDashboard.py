@@ -21,22 +21,21 @@ class TrackRecommendationDashboard:
         custom_style = "<style>h2 {font-size: 20px;}</style>"
         st.markdown(f"{custom_style}<h2>Track Recommendations</h2>", unsafe_allow_html=True)
         st.markdown("""
-            <p>The following tracks have been selected based on your recording submissions and the scores you have obtained. 
-            Each track is chosen to help you develop specific skills and overcome challenges you've encountered in past sessions. 
-            Here's how you can make the most of these recommendations:</p>
+            <p>Based on your recording submissions and scores, we've curated these <b>track recommendations</b> to aid in your skill development and address challenges from past sessions. Here's a guide to understanding and utilizing this information:</p>
             <ul>
-                <li><b>Review each track</b>: Take a moment to look at the details of each recommended track. 
-                Notice the overall average score and threshold score to gauge the track's difficulty.</li>
-                <li><b>Color Coding Explained</b>:
+                <li><b>Track Details</b>: Each track is accompanied by specific details. <b>Pay attention to the 'Level', 'Your Average Score', 'Track Average Score', 'Your Top Score', 'Track Top Score', and 'Track Threshold Score'</b>. These metrics provide insights into the track's difficulty and your performance in comparison to the overall and threshold scores.</li>
+                <li><b>Color Coding</b>: Colors represent your performance status.
                     <ul>
-                        <li><span style='color: red;'>Red</span>: Indicates concern or areas needing improvement. For example, if your average score is below 80% of the threshold, or your days on track are high.</li>
-                        <li><span style='color: green;'>Green</span>: Shows you are on track. For example, if your average score is within 80%  of the threshold.</li>
+                        <li><span style='color: red;'><b>Red</b></span>: Indicates <b>areas needing improvement</b>, such as an average score below 80% of the threshold or high days on track.</li>
+                        <li><span style='color: green;'><b>Green</b></span>: Signifies that you are <b>on track</b>, like an average score within 80% of the threshold.</li>
                     </ul>
                 </li>
-                <li><b>Start Practicing</b>: Choose a track that interests you and start practicing. 
-                It's important to note that surpassing the threshold score is about your average performance on the track, not just a one-time achievement. 
-                Consistently scoring high on the track is key to surpassing the threshold average score, reflecting steady improvement and mastery.</li>
+                <li><b>Days on Track</b>: Reflects the time you've spent on each track. A higher number may indicate a need for more practice or different learning strategies.</li>
+                <li><b>Last Remark</b>: Provides the latest feedback or note on your track performance.</li>
+                <li><b>Assessments</b>: Each track comes with a tailored assessment based on your performance. This includes <b>suggestions and observations</b> aimed at helping you understand your current standing and how to improve. <b>Read these carefully</b> to gain insights into your learning journey.</li>
+                <li><b>Action Steps</b>: <b>Choose a track</b> that aligns with your learning goals. <b>Consistent practice</b> and striving to surpass the threshold scores are crucial for your skill development and mastery of the track.</li>
             </ul>
+            <p><b>Important Note:</b> Once you select a track, make sure to <b>review your recordings and score trends</b> displayed below. Each recording for the selected track will be shown along with scores and reviews. <b>Listen to your own recordings</b> and <b>pay close attention to the reviews</b> to understand the corrections that need to be made. This <b>>self-review</b> process is vital for recognizing areas of improvement and tracking your progress over time.</p>
         """, unsafe_allow_html=True)
 
         st.write("")
@@ -102,25 +101,30 @@ class TrackRecommendationDashboard:
 
                     if track_info['days_on_track'] > 10:
                         st.error(
-                            "**Assessment**: Considerable time spent with limited progress. Review the basics or seek professional guidance.",
+                            "**Assessment**: Considerable time spent with limited progress. Review the basics or seek "
+                            "professional guidance.",
                             icon="📝")
                     elif track_info['days_on_track'] > 5:
                         if performance_issue:
                             st.warning(
-                                "**Assessment**: Performance below par, and track challenging. Seek additional help or revisit fundamentals.",
+                                "**Assessment**: Performance below par, and track challenging. Seek additional help "
+                                "or revisit fundamentals.",
                                 icon="📝")
                         else:
                             st.warning(
-                                "**Assessment**: Making progress, but review challenging parts. Time spent exceeds usual learning curve.",
+                                "**Assessment**: Making progress, but review challenging parts. Time spent exceeds "
+                                "usual learning curve.",
                                 icon="📝")
                     else:
                         if performance_issue:
                             st.warning(
-                                "**Assessment**: Scores below threshold. Focus on improving weak areas to meet expected standards.",
+                                "**Assessment**: Scores below threshold. Focus on improving weak areas to meet "
+                                "expected standards.",
                                 icon="📝")
                         else:
                             st.success(
-                                "**Assessment**: Good progress and on the right track. Continue your efforts to maintain the momentum.",
+                                "**Assessment**: Good progress and on the right track. Continue your efforts to "
+                                "maintain the momentum.",
                                 icon="📝")
 
                 # Select button
