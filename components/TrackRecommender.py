@@ -33,9 +33,34 @@ class TrackRecommender:
         all_avg_scores = {stat['track_id']: stat['avg_score'] for stat in all_avg_scores_by_track}
         all_max_scores = {stat['track_id']: stat['max_score'] for stat in all_track_stats}
 
+        # Build a map of track_id to earliest_recording_date
+        earliest_recording_date_map = {
+            stat['track_id']: stat['earliest_recording_date']
+            for stat in user_track_stats
+            if stat['earliest_recording_date']
+        }
+
         # Iterate through tracks and recommend based on the new conditions
         for track_stat in all_track_stats:
             track_id = track_stat['track_id']
+
+            # Check if the track is already recommended and get the first recommended date
+            # Use the earliest recording date from the map, if available
+            earliest_recording_date = earliest_recording_date_map.get(track_id)
+            recommended_on_date = earliest_recording_date or datetime.now()
+
+            # Check if the track is already recommended and get the first recommended date
+            first_recommended_date = self.recording_repo.get_first_recommendation_date(
+                user_id, track_id)
+
+            if first_recommended_date is None:
+                # Persist the recommendation date
+                self.recording_repo.add_user_track_recommendation(user_id, track_id, recommended_on_date)
+                first_recommended_date = recommended_on_date
+
+            # Calculate days on track using first_recommended_date
+            days_on_track = (datetime.now() - first_recommended_date).days
+
             if user_avg_scores.get(track_id, 0) < track_stat['recommendation_threshold_score']:
                 recommended_track_info = {
                     'track_name': track_stat['name'],
@@ -46,7 +71,7 @@ class TrackRecommender:
                     'overall_avg_score': round(all_avg_scores.get(track_id, 0), 2),
                     'overall_max_score': round(all_max_scores.get(track_id, 0), 2),
                     'threshold_score': round(track_stat['recommendation_threshold_score'], 2),
-                    'days_on_track': user_days_on_tracks.get(track_id, 0),
+                    'days_on_track': days_on_track,
                     'last_remark': last_remarks_map.get(track_id, "")
                 }
                 recommended_tracks.append(recommended_track_info)

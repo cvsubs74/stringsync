@@ -208,6 +208,43 @@ class TrackRecommendationDashboard:
 
         return selected_track_name, recommended_tracks
 
+    def analyze_student_performance(self, user_id):
+        # Get recommended tracks
+        recommended_tracks = self.track_recommender.recommend_tracks(user_id)
+
+        students_needing_attention = []
+
+        for track_info in recommended_tracks:
+            # Determine bands for scores and days
+            threshold_80_percent = track_info['threshold_score'] * Decimal('0.8')
+            max_score_80_percent = track_info['overall_max_score'] * Decimal('0.8')
+            avg_below_threshold = track_info['user_avg_score'] < threshold_80_percent
+            top_below_max = track_info['user_max_score'] < max_score_80_percent
+            days_on_track = track_info['days_on_track']
+            very_high_days = days_on_track > 10
+
+            # Determine if the student needs attention
+            needs_attention = False
+            attention_reason = ""
+
+            if track_info['user_avg_score'] == 0:
+                needs_attention = True
+                attention_reason = "No recordings submitted"
+            elif very_high_days and (avg_below_threshold or top_below_max):
+                needs_attention = True
+                attention_reason = "High days on track with low performance"
+            elif avg_below_threshold and top_below_max:
+                needs_attention = True
+                attention_reason = "Both average and top scores below potential"
+
+            if needs_attention:
+                students_needing_attention.append({
+                    "track_name": track_info['track_name'],
+                    "reason": attention_reason
+                })
+
+        return students_needing_attention
+
     @staticmethod
     def pad_assessment(assessment, max_length=250):
         padding = ' ' * (max_length - len(assessment))

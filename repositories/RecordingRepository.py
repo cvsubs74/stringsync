@@ -7,6 +7,7 @@ class RecordingRepository:
     def __init__(self, connection):
         self.connection = connection
         #self.create_recordings_table()
+        #self.create_user_track_table()
 
     def create_recordings_table(self):
         cursor = self.connection.cursor()
@@ -27,6 +28,21 @@ class RecordingRepository:
             is_training_data BOOLEAN DEFAULT FALSE,
             FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE SET NULL,
             FOREIGN KEY (assignment_id) REFERENCES assignments(id) ON DELETE SET NULL
+        );
+        """
+        cursor.execute(create_table_query)
+        self.connection.commit()
+
+    def create_user_track_table(self):
+        cursor = self.connection.cursor()
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS user_track (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT,
+            track_id INT,
+            first_recommended_on DATETIME,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
         );
         """
         cursor.execute(create_table_query)
@@ -377,6 +393,20 @@ class RecordingRepository:
         results = cursor.fetchall()
         return results
 
+    def add_user_track_recommendation(self, user_id, track_id, first_recommended_on):
+        cursor = self.connection.cursor()
+        add_query = """INSERT INTO user_track (user_id, track_id, first_recommended_on)
+                       VALUES (%s, %s, %s);"""
+        cursor.execute(add_query, (user_id, track_id, first_recommended_on))
+        self.connection.commit()
+        return cursor.lastrowid
 
+    def get_first_recommendation_date(self, user_id, track_id):
+        cursor = self.connection.cursor()
+        query = """SELECT first_recommended_on FROM user_track
+                   WHERE user_id = %s AND track_id = %s;"""
+        cursor.execute(query, (user_id, track_id))
+        result = cursor.fetchone()
+        return result[0] if result else None
 
 

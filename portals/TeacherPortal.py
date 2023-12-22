@@ -1092,8 +1092,6 @@ class TeacherPortal(BasePortal, ABC):
         self.get_practice_dashboard().build(selected_user_id)
         self.divider(2)
         self.get_badges_dashboard().show_badges_won(selected_user_id)
-        self.divider(2)
-        self.student_assessment_dashboard_builder.show_assessment(selected_user_id)
 
     def assessments(self):
         st.markdown(
