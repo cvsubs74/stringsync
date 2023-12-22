@@ -19,7 +19,7 @@ class TrackRecommender:
         user_avg_scores = {stat['track_id']: stat['avg_score'] for stat in user_avg_scores_by_track}
         user_max_scores = {stat['track_id']: stat['max_score'] for stat in user_track_stats}
         user_days_on_tracks = {
-            stat['track_id']: (stat['latest_recording_date'] - stat['earliest_recording_date']).days
+            stat['track_id']: (datetime.now() - stat['earliest_recording_date']).days
             for stat in user_track_stats if stat['earliest_recording_date'] and stat['latest_recording_date']
         }
 

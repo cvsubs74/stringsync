@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 import streamlit as st
@@ -69,13 +70,21 @@ class SkillsDashboard:
 
     def get_tracks(self, user_id):
         # Fetch user-specific track statistics
-        user_track_statistics = self.recording_repo.get_track_statistics_by_user(user_id)
+        user_track_stats = self.recording_repo.get_track_statistics_by_user(user_id)
         user_avg_scores_by_track = self.recording_repo.get_average_track_scores_by_user(user_id)
         user_avg_scores = {stat['track_id']: stat['avg_score'] for stat in user_avg_scores_by_track}
+        user_days_on_tracks = {
+            stat['track_id']: (datetime.now() - stat['earliest_recording_date']).days
+            for stat in user_track_stats if stat['earliest_recording_date'] and stat['latest_recording_date']
+        }
+        user_days_on_mastered_tracks = {
+            stat['track_id']: (stat['latest_recording_date'] - stat['earliest_recording_date']).days
+            for stat in user_track_stats if stat['earliest_recording_date'] and stat['latest_recording_date']
+        }
         track_statistics = self.recording_repo.get_all_track_statistics()
 
         # Get the highest level the user has attempted
-        highest_user_level = max(stat['level'] for stat in user_track_statistics)
+        highest_user_level = max(stat['level'] for stat in user_track_stats)
 
         # Include all levels up to the highest level the user has attempted
         included_levels = set(range(1, highest_user_level + 1))
@@ -84,7 +93,7 @@ class SkillsDashboard:
         filtered_tracks = [track for track in track_statistics if track['level'] in included_levels]
 
         # Create a dictionary for quick lookup of statistics by track_id
-        stats_dict = {stat['track_id']: stat for stat in user_track_statistics}
+        stats_dict = {stat['track_id']: stat for stat in user_track_stats}
 
         # Build track details list
         track_details = [
@@ -94,7 +103,9 @@ class SkillsDashboard:
                 'num_recordings': stats_dict.get(track['track_id'], {}).get('num_recordings', 0),
                 'avg_score': user_avg_scores.get(track['track_id'], 0),
                 'min_score': stats_dict.get(track['track_id'], {}).get('min_score', 0),
-                'max_score': stats_dict.get(track['track_id'], {}).get('max_score', 0)
+                'max_score': stats_dict.get(track['track_id'], {}).get('max_score', 0),
+                'days_on_track': user_days_on_tracks.get(track['track_id'], 0),
+                'days_on_mastered_track': user_days_on_mastered_tracks.get(track['track_id'], 0),
             }
             for track in filtered_tracks
         ]
@@ -120,29 +131,103 @@ class SkillsDashboard:
                                  default=(0, 0))
         group_common_info = max([(track['level'], track['ordering_rank']) for track in group_tracks], default=(0, 0))
 
+        high_days_threshold = 7
+        high_days_on_recommended_track = any(
+            (track_detail['days_on_mastered_track'] if track_detail['avg_score'] >= track_detail[
+                'recommendation_threshold_score'] else track_detail['days_on_track']) > high_days_threshold
+            and track_detail['track']['name'] in recommended_track_names
+            for track_detail in tracks
+        )
+
+        no_recordings_on_some_tracks = any(
+            track_detail['num_recordings'] == 0 and track_detail['track']['name'] in recommended_track_names
+            for track_detail in tracks)
+        no_recordings_on_all_tracks = all(
+            track_detail['num_recordings'] == 0 and track_detail['track']['name'] in recommended_track_names
+            for track_detail in tracks)
+        progress_status = None
         # Determine the user's progress status and provide context with color icon explanations
         if user_highest_info in advanced_group_track_info and user_highest_info >= group_highest_info:
             if top_performer_id == user_id:
-                # Congratulatory message for the current user
-                progress_status = "<h4 style='font-size: 18px;'>🏆 You're the Top Performer - Leading the Way!</h4>" \
-                                  "<p style='font-size: 16px;'>Fantastic! You're at the forefront, leading the pack " \
-                                  "with those cool <span style='color: red;'>♦️</span> red diamonds. Keep up the " \
-                                  "amazing work and continue to set the pace for your friends!</p>"
+                if high_days_on_recommended_track:
+                    progress_status = "<h4 style='font-size: 18px;'>🏆 Top Performer - Attention to Detail Needed!</h4>" \
+                                      "<p style='font-size: 16px;'>Impressive! You're leading with <span " \
+                                      "style='color: red;'>♦️</span> red diamonds. However, you're spending a lot of " \
+                                      "time on some recommended tracks (⚠️). Consider optimizing your practice " \
+                                      "strategy on these to maintain your leading position efficiently.</p> "
+                else:
+                    progress_status = "<h4 style='font-size: 18px;'>🏆 You're the Top Performer - Leading the Way!</h4>" \
+                                      "<p style='font-size: 16px;'>Fantastic! You're at the forefront, leading the " \
+                                      "pack with those cool <span style='color: red;'>♦️</span> red diamonds. Keep up " \
+                                      "the amazing work and continue to set the pace for your friends!</p>"
             else:
-                progress_status = "<h4 style='font-size: 18px;'>🏆 Top Performer - Keep Soaring High!</h4>" \
-                                  "<p style='font-size: 16px;'>You're leading the pack (indicated by the ♦️ red " \
-                                  "diamonds). You're hitting the advanced tracks that even the fastest learners in " \
-                                  "the group are working on. Amazing job!</p>"
+                if high_days_on_recommended_track:
+                    progress_status = "<h4 style='font-size: 18px;'>🏆 Top Performer - Keep Soaring High, But Mind " \
+                                      "the Time!</h4><p style='font-size: 16px;'>You're leading the pack (indicated " \
+                                      "by the ♦️ red diamonds). While you're hitting the advanced tracks, be mindful " \
+                                      "of the time spent on recommended tracks (⚠️). Balancing your pace is key!</p> "
+                else:
+                    progress_status = "<h4 style='font-size: 18px;'>🏆 Top Performer - Keep Soaring High!</h4>" \
+                                      "<p style='font-size: 16px;'>You're leading the pack (indicated by the ♦️ red " \
+                                      "diamonds). You're hitting the advanced tracks that even the fastest learners in " \
+                                      "the group are working on. Amazing job!</p>"
         elif user_highest_info > group_common_info:
-            progress_status = "<h4 style='font-size: 18px;'>🚀 Excelling Ahead - Fantastic Progress!</h4>" \
-                              "<p style='font-size: 16px;'>You're outpacing the average group progress " \
-                              "(marked by the 🔶 orange diamonds). This means you're learning faster than most, " \
-                              "taking on more challenging tracks. Keep it up!</p>"
+            if no_recordings_on_all_tracks:
+                progress_status = "<h4 style='font-size: 18px;'>⚠️ Time to Start Your Journey!</h4>" \
+                                  "<p style='font-size: 16px;'>You're positioned to excel, but you haven't started any " \
+                                  "tracks yet. Embark on your first recording to unleash your potential!</p>"
+            elif no_recordings_on_some_tracks and high_days_on_recommended_track:
+                progress_status = "<h4 style='font-size: 18px;'>🚀 Excelling with Caution!</h4>" \
+                                  "<p style='font-size: 16px;'>Impressive progress outpacing the group! However, " \
+                                  "you have some unexplored tracks and are lingering on certain recommended tracks (" \
+                                  "⚠️). Diversifying your focus and optimizing your learning strategy will help you " \
+                                  "to fully maximize your potential.</p> "
+            elif no_recordings_on_some_tracks:
+                progress_status = "<h4 style='font-size: 18px;'>🚀 Excelling Ahead, But Some Tracks Await!</h4>" \
+                                  "<p style='font-size: 16px;'>You're outpacing the average group progress, but some " \
+                                  "tracks are still unexplored. Dive into these tracks to enhance your learning " \
+                                  "experience!</p> "
+            elif high_days_on_recommended_track:
+                progress_status = "<h4 style='font-size: 18px;'>🚀 Excelling, But Mind the Time!</h4>" \
+                                  "<p style='font-size: 16px;'>Great job outpacing the group average (🔶 orange " \
+                                  "diamonds), but you're spending quite a while on some recommended tracks (⚠️). " \
+                                  "Consider optimizing your approach for even better results.</p> "
+            else:
+                progress_status = "<h4 style='font-size: 18px;'>🚀 Excelling Ahead - Fantastic Progress!</h4>" \
+                                  "<p style='font-size: 16px;'>You're outpacing the average group progress (🔶 orange " \
+                                  "diamonds). You're learning faster than most, taking on more challenging tracks. " \
+                                  "Keep up the great work!</p> "
         elif user_highest_info == group_common_info:
-            progress_status = "<h4 style='font-size: 18px;'>✅ Right on Track - Steady and Strong!</h4>" \
-                              "<p style='font-size: 16px;'>You're moving in sync with the group's average progress " \
-                              "(🔶 orange diamonds). This shows you're keeping pace with your peers and are right " \
-                              "where you should be.</p> "
+            if no_recordings_on_all_tracks:
+                progress_status = "<h4 style='font-size: 18px;'>⚠️ Time to Start Your Journey!</h4>" \
+                                  "<p style='font-size: 16px;'>You haven't started any tracks yet. Dive into your " \
+                                  "first recording to begin your learning adventure!</p>"
+            elif no_recordings_on_some_tracks and high_days_on_recommended_track:
+                progress_status = "<h4 style='font-size: 18px;'>🕒 Balanced Growth Needed!</h4>" \
+                                  "<p style='font-size: 16px;'>You're keeping pace with the group, which is great! " \
+                                  "However, there are unexplored tracks awaiting your attention, and you're also " \
+                                  "spending a long time on certain recommended tracks (⚠️). Balancing your efforts " \
+                                  "across all tracks can lead to more holistic growth and learning.</p>"
+            elif no_recordings_on_some_tracks:
+                partial_progress_msg = "You're making progress, but some tracks haven't been started yet. " \
+                                       "Explore these tracks to fully embrace your learning journey!"
+                if high_days_on_recommended_track:
+                    progress_status = "<h4 style='font-size: 18px;'>⚠️ Partial Progress with Focus Needed!</h4>" \
+                                      f"<p style='font-size: 16px;'>{partial_progress_msg} Also, you're spending " \
+                                      f"quite a lot of time on some recommended tracks. Balancing your focus could " \
+                                      f"enhance your progress.</p> "
+                else:
+                    progress_status = "<h4 style='font-size: 18px;'>⚠️ Partial Progress - Some Tracks Await!</h4>" \
+                                      f"<p style='font-size: 16px;'>{partial_progress_msg}</p>"
+            elif high_days_on_recommended_track:
+                progress_status = "<h4 style='font-size: 18px;'>🕒 Focused Attention Needed on Recommended Tracks!</h4>" \
+                                  "<p style='font-size: 16px;'>You're on track with the group, but spending a lot of " \
+                                  "time on some recommended tracks. A review of your approach might be beneficial.</p>"
+            elif user_highest_info == group_common_info:
+                progress_status = "<h4 style='font-size: 18px;'>✅ Right on Track - Steady and Strong!</h4>" \
+                                  "<p style='font-size: 16px;'>You're moving in sync with the group's average progress " \
+                                  "(🔶 orange diamonds). This shows you're keeping pace with your peers and are right " \
+                                  "where you should be.</p>"
         else:
             progress_status = "<h4 style='font-size: 18px;'>🌟 Time to Shine - Let's Catch Up!</h4>" \
                               "<p style='font-size: 16px;'>You've got some catching up to do, as you're currently " \
@@ -161,11 +246,12 @@ class SkillsDashboard:
                 f"Let's turn up the music and show what you've got! 🎵🚀</p>",
                 unsafe_allow_html=True)
 
-        column_widths = [22, 13, 13, 13, 13, 13, 13]
+        column_widths = [23, 11, 11, 11, 11, 11, 11, 11]
         list_builder = ListBuilder(column_widths)
 
         list_builder.build_header(
-            column_names=["Track", "Level", "Recordings", "Average Score", "Threshold", "Min Score", "Max Score"])
+            column_names=["Track", "Level", "Days on Track", "Recordings", "Average Score", "Threshold", "Min Score",
+                          "Max Score"])
 
         # Define margin as 80% of the threshold
         margin = float(Decimal(0.8))
@@ -189,6 +275,11 @@ class SkillsDashboard:
             is_advanced_group_track = (track_detail['track']['level'],
                                        track_detail['track']['ordering_rank']) in advanced_group_track_info
 
+            # Calculate Days on Track
+            days_on_track = track_detail['days_on_mastered_track'] \
+                if track_detail['avg_score'] >= track_detail['recommendation_threshold_score'] \
+                else track_detail['days_on_track']
+
             # Icon logic with fixed length
             icons = ["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] * 3
             if is_group_track:
@@ -197,12 +288,19 @@ class SkillsDashboard:
                 icons[1] = "♦️"
             if is_recommended:
                 icons[2] = "🔷"
-            icons.append("&nbsp;&nbsp;")
+                if days_on_track > high_days_threshold or \
+                        (track_detail['num_recordings'] == 0 and
+                         user_highest_info == group_common_info or user_highest_info < group_common_info):
+                    icons.append("⚠️")  # Special indicator for high days on track
+            else:
+                icons.append("&nbsp;&nbsp;")
 
-            # Retrieve days on track for the current track
             row_data = {
                 "Track": f"{''.join(icons)} {track_name}",
                 "Level": track_detail['track']['level'],
+                "Days on Track": track_detail['days_on_mastered_track']
+                if track_detail['avg_score'] >= track_detail['recommendation_threshold_score']
+                else track_detail['days_on_track'],
                 "Number of Recordings": track_detail['num_recordings'],
                 "Average Score": round(track_detail['avg_score'], 2),
                 "Threshold": round(track_detail['recommendation_threshold_score'], 2),
