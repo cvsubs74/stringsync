@@ -22,6 +22,7 @@ from dashboards.SkillsDashboard import SkillsDashboard
 from dashboards.ResourceDashboard import ResourceDashboard
 from dashboards.StudentAssessmentDashboard import StudentAssessmentDashboard
 from dashboards.TeamDashboard import TeamDashboard
+from dashboards.TrackRecommendationDashboard import TrackRecommendationDashboard
 from enums.ActivityType import ActivityType
 from enums.Badges import TrackBadges
 from enums.Features import Features
@@ -1086,6 +1087,8 @@ class TeacherPortal(BasePortal, ABC):
         st.write("")
         st.write("")
         self.divider(2)
+        TrackRecommendationDashboard(self.recording_repo, self.user_repo).display_recommendations(
+            selected_user_id, False)
         self.get_practice_dashboard().build(selected_user_id)
         self.divider(2)
         self.get_badges_dashboard().show_badges_won(selected_user_id)
