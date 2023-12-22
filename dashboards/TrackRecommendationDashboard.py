@@ -33,14 +33,7 @@ class TrackRecommendationDashboard:
                             <li><b>Track Top Score</b>: The highest score achieved by any student on the track. It serves as an <b>aspirational goal</b>, showcasing the highest level of achievement possible on the track.</li>
                             <li><b>Track Threshold Score</b>: A predefined benchmark score for the track. Surpassing this score consistently signifies your <b>proficiency</b> and understanding of the track's material.</li>
                             <li><b>Days on Track</b>: Represents the total number of days you have spent working on this track. It helps in assessing the <b>time you've invested</b> and could indicate if a different learning approach may be required based on the duration.</li>
-                            <li><b>Last Remark</b>: The most recent feedback or note regarding your performance on the track. It can provide specific insights and suggestions for improvement, guiding your learning process.</li>
-                            <li><b>Assessments</b>: Each track comes with a tailored assessment based on your performance. This includes <b>suggestions and observations</b> aimed at helping you understand your current standing and how to improve. <b>Read these carefully</b> to gain insights into your learning journey.</li>
-                            <li><b>Color Coding</b>: Utilized to visually represent your performance status. 
-                                <ul>
-                                    <li><span style='color: red;'><b>Red</b></span>: Indicates <b>areas that need improvement</b>, such as an average score below the threshold.</li>
-                                    <li><span style='color: green;'><b>Green</b></span>: Suggests <b>satisfactory performance</b>, typically when your average score is around or above the threshold.</li>
-                                </ul>
-                            </li>
+                            <li><b>Assessment</b>: Each track comes with a tailored assessment based on your performance. This includes <b>suggestions and observations</b> aimed at helping you understand your current standing and how to improve. <b>Read these carefully</b> to gain insights into your learning journey.</li>
                         </ul>
                     </li>
                     <li><b>Action Steps</b>: <b>Choose a track</b> that aligns with your learning goals. <b>Consistent practice</b> and striving to surpass the threshold scores are crucial for your <b>skill development</b> and mastery of the track.</li>
