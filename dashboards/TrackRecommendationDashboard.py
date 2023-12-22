@@ -106,20 +106,19 @@ class TrackRecommendationDashboard:
                     st.info(formatted_message)
 
                 # Determine bands for scores and days
+                avg_equals_0 = track_info['user_avg_score'] == 0
                 avg_below_threshold = track_info['user_avg_score'] < threshold_80_percent
                 avg_above_threshold = track_info['user_avg_score'] >= threshold_80_percent
                 top_below_max = track_info['user_max_score'] < max_score_80_percent
                 top_above_max = track_info['user_max_score'] >= max_score_80_percent
 
                 # Enumerate all combinations for assessment
-                if track_info['user_avg_score'] == 0:
-                    assessment = "**Assessment**: No recordings yet. "\
-                                 "Embark on your first recording to unlock valuable insights and make meaningful " \
-                                 "progress. It is time dive in and explore."
-                    st.error(self.pad_assessment(assessment), icon="📝")
-
-                elif very_high_days:
-                    if avg_below_threshold and top_below_max:
+                if very_high_days:
+                    if avg_equals_0:
+                        assessment = "**Assessment**: Considerable time on this track without any recordings. It's " \
+                                     "critical to start recording to make progress. "
+                        st.error(self.pad_assessment(assessment), icon="📝")
+                    elif avg_below_threshold and top_below_max:
                         assessment = "**Assessment**: Significant time spent with both average and top scores low. " \
                                      "Critical to reassess learning approach and seek targeted guidance for " \
                                      "improvement. "
@@ -140,7 +139,11 @@ class TrackRecommendationDashboard:
                         st.info(self.pad_assessment(assessment), icon="📝")
 
                 elif high_days:
-                    if avg_below_threshold and top_below_max:
+                    if avg_equals_0:
+                        assessment = "**Assessment**: You've spent quite some time on this track but haven't started " \
+                                     "recording yet. Begin recording to see improvement. "
+                        st.warning(self.pad_assessment(assessment), icon="📝")
+                    elif avg_below_threshold and top_below_max:
                         assessment = "**Assessment**: High days on track with both average and top scores below " \
                                      "potential. Imperative to intensify learning efforts and seek improvement " \
                                      "strategies. "
@@ -159,7 +162,11 @@ class TrackRecommendationDashboard:
                         st.success(self.pad_assessment(assessment), icon="📝")
 
                 elif moderate_days:
-                    if avg_below_threshold and top_below_max:
+                    if avg_equals_0:
+                        assessment = "**Assessment**: Some time has passed since this track was recommended. Starting " \
+                                     "your recordings now can greatly benefit your learning. "
+                        st.info(self.pad_assessment(assessment), icon="📝")
+                    elif avg_below_threshold and top_below_max:
                         assessment = "**Assessment**: Moderate days on track; both average and top scores need a " \
                                      "significant boost. Focus on holistic skill development for better outcomes. "
                         st.info(self.pad_assessment(assessment), icon="📝")
@@ -177,7 +184,12 @@ class TrackRecommendationDashboard:
                         st.success(self.pad_assessment(assessment), icon="📝")
 
                 elif optimal_days:
-                    if avg_below_threshold and top_below_max:
+                    if avg_equals_0:
+                        assessment = "**Assessment**: This is a great moment to eagerly start your first recording " \
+                                     "for this track! Embark confidently on this journey to unlock valuable insights " \
+                                     "and experiences "
+                        st.success(self.pad_assessment(assessment), icon="📝")
+                    elif avg_below_threshold and top_below_max:
                         assessment = "**Assessment**: Quick start with both scores needing enhancement. Dedicate time " \
                                      "to targeted practice for noticeable improvement in performance. "
                         st.info(self.pad_assessment(assessment), icon="📝")
