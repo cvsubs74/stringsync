@@ -2,6 +2,7 @@ import base64
 import hashlib
 import os
 from abc import ABC
+from datetime import datetime
 
 from langchain.llms.openai import AzureOpenAI
 
@@ -11,6 +12,7 @@ from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
 from components.ScorePredictor import ScorePredictor
 from components.TrackRecommender import TrackRecommender
+from components.TrackScoringTrendsDisplay import TrackScoringTrendsDisplay
 from dashboards.AssignmentDashboard import AssignmentDashboard
 from dashboards.BadgesDashboard import BadgesDashboard
 from dashboards.HallOfFameDashboard import HallOfFameDashboard
@@ -914,6 +916,17 @@ class TeacherPortal(BasePortal, ABC):
                             self.track_repo.flag_model_rebuild(track_id)
                         st.success("Remarks/Score updated successfully.")
 
+        # Create two columns for the layout
+        col1, col2 = st.columns(2)
+
+        # Display the table in the first column
+        with col1:
+            recordings = self.display_remarks_and_score(recordings)
+
+        # Display the graph in the second column
+        with col2:
+            TrackScoringTrendsDisplay().show(recordings)
+
     def submissions(self):
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
@@ -947,15 +960,6 @@ class TeacherPortal(BasePortal, ABC):
         self.check_and_update_distance_and_score(submission)
         with st.expander(expander_label):
             with st.form(key=f"submission_form_{submission['id']}"):
-                """
-                if submission['track_path']:
-                    filename = self.storage_repo.download_blob_by_url(submission['track_path'])
-                    st.markdown("<span style='font-size: 15px;'>Track:</span>", unsafe_allow_html=True)
-                    st.audio(filename, format='dashboards/m4a')
-                else:
-                    st.write("No dashboards data available.")
-                """
-
                 if submission['blob_url']:
                     filename = self.storage_repo.download_blob_by_name(submission['blob_name'])
                     st.markdown("<span style='font-size: 15px;'>Submission:</span>", unsafe_allow_html=True)
@@ -1005,6 +1009,48 @@ class TeacherPortal(BasePortal, ABC):
                     if use_for_training:
                         self.track_repo.flag_model_rebuild(submission['track_id'])
                     st.success("Remarks/Score/Badge updated successfully.")
+
+            # Create two columns for the layout
+            col1, col2 = st.columns(2)
+
+            # Display the table in the first column
+            with col1:
+                recordings = self.display_remarks_and_score_for_recordings(
+                    submission['user_id'], submission['track_id'])
+
+            # Display the graph in the second column
+            with col2:
+                TrackScoringTrendsDisplay().show(recordings)
+
+    def display_remarks_and_score_for_recordings(
+            self, user_id, track_id, timezone='America/Los_Angeles'):
+        recordings = self.recording_repo.get_recordings_by_user_id_and_track_id(
+            user_id, track_id, timezone)
+        if not recordings:
+            return None
+
+        return self.display_remarks_and_score(recordings)
+
+    @staticmethod
+    def display_remarks_and_score(recordings):
+        st.write("**Recordings**")
+        column_widths = [50, 25, 25]
+        list_builder = ListBuilder(column_widths)
+        list_builder.build_header(
+            column_names=['Remarks', 'Score', 'Time'])
+
+        # Build rows for the user activities listing
+        for recording in recordings:
+            local_timestamp = recording['timestamp'].strftime('%-I:%M %p | %b %d') \
+                if isinstance(recording['timestamp'], datetime) else recording['timestamp']
+
+            list_builder.build_row(row_data={
+                'Remarks': recording['remarks'],
+                'Score': recording['score'],
+                'Timestamp': local_timestamp
+            })
+
+        return recordings
 
     def check_and_update_distance_and_score(self, submission):
         if submission['distance'] and submission['score']:

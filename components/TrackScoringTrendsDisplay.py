@@ -22,12 +22,19 @@ class TrackScoringTrendsDisplay:
             df,
             x='index',
             y='score',
-            title=f'',
+            title='',
             labels={'index': 'Recordings', 'score': 'Score'}
         )
 
         # Set the y-axis to start from 0
         fig_line.update_yaxes(range=[0, max(10, df['score'].max())])
+
+        # Set the x-axis to only show integer values
+        fig_line.update_xaxes(
+            type='linear',
+            tickmode='array',
+            tickvals=list(range(df['index'].max() + 1))
+        )
 
         # Adding the line graph to the Streamlit app
         st.plotly_chart(fig_line, use_container_width=True)
