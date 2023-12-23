@@ -1,3 +1,5 @@
+import datetime
+
 import pymysql.cursors
 from components.TimeConverter import TimeConverter
 from enums.TimeFrame import TimeFrame
@@ -409,4 +411,38 @@ class RecordingRepository:
         result = cursor.fetchone()
         return result[0] if result else None
 
+    def get_recently_reviewed_submissions(self, days=1):
+        """
+        Retrieve recently reviewed submissions for all users based on the specified number of days.
 
+        :param days: The number of days in the past to consider for recent submissions.
+        :return: A list of recent reviewed recordings with comprehensive details.
+        """
+        cursor = self.connection.cursor(pymysql.cursors.DictCursor)
+
+        # Calculate the date from 'days' days ago
+        date_threshold = datetime.datetime.now() - datetime.timedelta(days=days)
+
+        query = """
+            SELECT r.id, r.blob_name, r.blob_url, t.name as track_name, t.track_path, r.timestamp, r.duration,
+                   r.distance, t.offset, t.level, r.track_id, r.score, r.analysis, r.remarks, 
+                   r.user_id, u.name as user_name, r.is_training_data,
+                   ua.badge, ua.value AS badge_value
+            FROM recordings r
+            JOIN tracks t ON r.track_id = t.id
+            JOIN users u ON r.user_id = u.id
+            LEFT JOIN user_achievements ua ON r.id = ua.recording_id
+            WHERE r.timestamp >= %s AND r.remarks IS NOT NULL AND r.remarks != ''
+            ORDER BY r.timestamp DESC;
+        """
+
+        cursor.execute(query, (date_threshold,))
+        recent_reviewed_recordings = cursor.fetchall()
+
+        # Convert timestamp to local timezone
+        for recording in recent_reviewed_recordings:
+            local_timestamp = TimeConverter.convert_timestamp(
+                recording['timestamp'], 'America/Los_Angeles')
+            recording['timestamp'] = local_timestamp
+
+        return recent_reviewed_recordings

@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import os
+import time
 from abc import ABC
 from datetime import datetime
 
@@ -938,20 +939,25 @@ class TeacherPortal(BasePortal, ABC):
         self.divider()
         # Filter criteria
         group_id, username, user_id, track_id, track_name = self.list_students_and_tracks("S")
-        if group_id is None and user_id is None:
-            return
+        if group_id or user_id:
+            # Fetch and sort recordings
+            submissions = self.portal_repo.get_recordings(group_id, user_id, track_id)
+            if not submissions:
+                st.info("No submissions found.")
+            else:
+                df = pd.DataFrame(submissions)
 
-        # Fetch and sort recordings
-        submissions = self.portal_repo.get_recordings(group_id, user_id, track_id)
-        if not submissions:
-            st.info("No submissions found.")
-            return
+                # Display each recording in an expander
+                for index, recording in df.iterrows():
+                    self.show_submission(recording)
 
-        df = pd.DataFrame(submissions)
-
-        # Display each recording in an expander
-        for index, recording in df.iterrows():
-            self.show_submission(recording)
+        self.divider()
+        st.markdown(
+            f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+            f"-size: 16px;'> ✅ Recently Reviewed Submissions ✅ </h2>",
+            unsafe_allow_html=True)
+        # Show recently reviewed submissions
+        self.show_recently_reviewed_submissions()
 
     def show_submission(self, submission):
         expander_label = f"**{submission.get('user_name', 'N/A')} - " \
@@ -959,7 +965,8 @@ class TeacherPortal(BasePortal, ABC):
                          f"{submission.get('timestamp', 'N/A')}**"
         self.check_and_update_distance_and_score(submission)
         with st.expander(expander_label):
-            with st.form(key=f"submission_form_{submission['id']}"):
+            form_key = f"submission_form_{submission['id']}_{int(time.time())}"
+            with st.form(key=form_key):
                 if submission['blob_url']:
                     filename = self.storage_repo.download_blob_by_name(submission['blob_name'])
                     st.markdown("<span style='font-size: 15px;'>Submission:</span>", unsafe_allow_html=True)
@@ -1099,6 +1106,11 @@ class TeacherPortal(BasePortal, ABC):
         # Display recent submission summary
         for submission in submissions:
             list_builder.build_row(submission)
+
+    def show_recently_reviewed_submissions(self):
+        submissions = self.recording_repo.get_recently_reviewed_submissions()
+        for submission in submissions:
+            self.show_submission(submission)
 
     def progress_dashboard(self):
         st.markdown(

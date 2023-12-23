@@ -12,15 +12,19 @@ class TrackScoringTrendsDisplay:
         st.write("**Score Trends**")
         # Convert recordings data to a DataFrame
         df = pd.DataFrame(recordings)
+
+        # Sort by timestamp in ascending order
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
         df.sort_values(by='timestamp', inplace=True)
 
-        # Use the DataFrame index as x-axis
-        df.reset_index(inplace=True)
+        # After sorting, reset the index to use it as x-axis and start from 1
+        df.reset_index(drop=True, inplace=True)
+        df.index += 1
 
         # Plotting the line graph for score trend
         fig_line = px.line(
             df,
-            x='index',
+            x=df.index,
             y='score',
             title='',
             labels={'index': 'Recordings', 'score': 'Score'}
@@ -29,12 +33,13 @@ class TrackScoringTrendsDisplay:
         # Set the y-axis to start from 0
         fig_line.update_yaxes(range=[0, max(10, df['score'].max())])
 
-        # Set the x-axis to only show integer values
+        # Set the x-axis to only show integer values starting from 1
         fig_line.update_xaxes(
             type='linear',
             tickmode='array',
-            tickvals=list(range(df['index'].max() + 1))
+            tickvals=list(range(1, df.shape[0] + 1))
         )
 
         # Adding the line graph to the Streamlit app
         st.plotly_chart(fig_line, use_container_width=True)
+
