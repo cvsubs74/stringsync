@@ -954,7 +954,7 @@ class TeacherPortal(BasePortal, ABC):
         self.divider()
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
-            f"-size: 16px;'> ✅ Recently Reviewed Submissions ✅ </h2>",
+            f"-size: 20px;'> ✅ Recently Reviewed Submissions ✅ </h2>",
             unsafe_allow_html=True)
         # Show recently reviewed submissions
         self.show_recently_reviewed_submissions()
