@@ -366,7 +366,7 @@ class RecordingRepository:
 
         # Base query
         query = """
-        SELECT r.track_id, t.name AS track_name, r.remarks AS latest_remarks, r.timestamp AS latest_recording_date
+        SELECT r.track_id, t.name AS track_name, r.remarks AS latest_remarks, r.score, r.timestamp AS latest_recording_date
         FROM recordings r
         JOIN tracks t ON r.track_id = t.id
         WHERE r.user_id = %s
