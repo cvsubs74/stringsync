@@ -965,7 +965,7 @@ class TeacherPortal(BasePortal, ABC):
                          f"{submission.get('timestamp', 'N/A')}**"
         self.check_and_update_distance_and_score(submission)
         with st.expander(expander_label):
-            form_key = f"submission_form_{submission['id']}_{int(time.time())}"
+            form_key = f"submission_form_{submission['id']}"
             with st.form(key=form_key):
                 if submission['blob_url']:
                     filename = self.storage_repo.download_blob_by_name(submission['blob_name'])
@@ -999,6 +999,69 @@ class TeacherPortal(BasePortal, ABC):
                 # Checkbox for using the recording for model training
                 use_for_training = st.checkbox("Use this recording for model training?",
                                                key=f"submission_training_{submission['id']}",
+                                               value=submission["is_training_data"])
+                # Submit button for the form
+                if st.form_submit_button("Submit", type="primary"):
+                    # Check for required fields
+                    if not remarks:
+                        st.error("Please provide remarks.")
+                        return
+                    if selected_badge == '--Select a badge--':
+                        st.error("Please select a badge (or N/A).")
+                        return
+
+                    # Update logic
+                    self.handle_remarks_and_badges(
+                        score, submission, remarks, selected_badge, use_for_training)
+                    if use_for_training:
+                        self.track_repo.flag_model_rebuild(submission['track_id'])
+                    st.success("Remarks/Score/Badge updated successfully.")
+
+            # Create two columns for the layout
+            col1, col2 = st.columns(2)
+
+            # Display the table in the first column
+            with col1:
+                recordings = self.display_remarks_and_score_for_recordings(
+                    submission['user_id'], submission['track_id'])
+
+            # Display the graph in the second column
+            with col2:
+                TrackScoringTrendsDisplay().show(recordings)
+
+    def show_reviewed_submission(self, submission):
+        expander_label = f"**{submission.get('user_name', 'N/A')} - " \
+                         f"{submission.get('track_name', 'N/A')} - " \
+                         f"{submission.get('timestamp', 'N/A')}**"
+        self.check_and_update_distance_and_score(submission)
+        with st.expander(expander_label):
+            form_key = f"reviewed_submission_form_{submission['id']}"
+            with st.form(key=form_key):
+                score = st.text_input("Score", key=f"reviewed_submission_score_{submission['id']}",
+                                      value=submission['score'])
+                remarks = st.text_area("Remarks",
+                                       key=f"reviewed_submission_remarks_{submission['id']}",
+                                       value=submission["remarks"])
+
+                badge_options = [badge.value for badge in TrackBadges]
+
+                # Find the index of the badge name in the options list
+                default_index = next((index for index, badge in enumerate(TrackBadges)
+                                      if badge.description == submission["badge"]), -1)
+                if default_index >= 0:
+                    # Add 2 to the index to account for the '--Select a badge--' and 'N/A' options
+                    default_index += 2
+                else:
+                    # If no badge is found, default to '--Select a badge--'
+                    default_index = 0
+
+                selected_badge = st.selectbox("Select a badge", ['--Select a badge--', 'N/A'] + badge_options,
+                                              key=f"reviewed_badge_{submission['id']}",
+                                              index=default_index)
+
+                # Checkbox for using the recording for model training
+                use_for_training = st.checkbox("Use this recording for model training?",
+                                               key=f"reviewed_submission_training_{submission['id']}",
                                                value=submission["is_training_data"])
                 # Submit button for the form
                 if st.form_submit_button("Submit", type="primary"):
@@ -1110,7 +1173,7 @@ class TeacherPortal(BasePortal, ABC):
     def show_recently_reviewed_submissions(self):
         submissions = self.recording_repo.get_recently_reviewed_submissions()
         for submission in submissions:
-            self.show_submission(submission)
+            self.show_reviewed_submission(submission)
 
     def progress_dashboard(self):
         st.markdown(
