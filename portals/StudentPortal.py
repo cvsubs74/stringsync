@@ -221,12 +221,13 @@ class StudentPortal(BasePortal, ABC):
             self.display_track_files(f"Track: {selected_track_name}", track_audio_path)
             recording = self.recording_repo.get_latest_recording_remarks_by_user(
                 self.get_user_id(), [track['id']])
-            score = recording[0]['score']
-            remarks = recording[0]['latest_remarks']
-            st.info(f"""
-                **💬 Last Remark:** {remarks} \n
-                **🌟 Last Score:** {score}
-                """)
+            if recording:
+                score = recording[0]['score']
+                remarks = recording[0]['latest_remarks']
+                st.info(f"""
+                    **💬 Last Remark:** {remarks} \n
+                    **🌟 Last Score:** {score}
+                    """)
         with col2:
             uploaded, badge_awarded, recording_id, recording_audio_path = \
                 recording_uploader.upload(
