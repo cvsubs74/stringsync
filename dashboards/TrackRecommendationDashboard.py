@@ -34,6 +34,7 @@ class TrackRecommendationDashboard:
         # Create columns for each track
         cols = st.columns(5)
         selected_track_name = None
+        selected_track_id = None
 
         for i, track_info in enumerate(recommended_tracks):
             with cols[i]:
@@ -83,16 +84,6 @@ class TrackRecommendationDashboard:
                     st.warning(f"**Days on Track: {days_on_track}**", icon="📅")
                 else:  # Optimal: 0-3 days
                     st.success(f"**Days on Track: {days_on_track}**", icon="📅")
-
-                if not allow_selection:
-                    last_remark = track_info['last_remark']
-                    if track_info['user_avg_score'] == 0:
-                        formatted_message = f"**Last Remark:** N/A"
-                    else:
-                        formatted_message = f"**Last Remark:** {last_remark}"
-
-                    # Use markdown to display the message with a line break
-                    st.info(formatted_message)
 
                 # Determine bands for scores and days
                 avg_equals_0 = track_info['user_avg_score'] == 0
@@ -199,8 +190,13 @@ class TrackRecommendationDashboard:
                 if allow_selection:
                     if st.button(f"🌟 Select 🌟", key=f"btn_{i}", type="primary"):
                         selected_track_name = track_info['track_name']
+                        selected_track_id = track_info['track_id']
+                else:
+                    if st.button(f"🌟 View Remarks 🌟", key=f"remarks_btn_{i}", type="primary"):
+                        selected_track_name = track_info['track_name']
+                        selected_track_id = track_info['track_id']
 
-        return selected_track_name, recommended_tracks
+        return selected_track_id, selected_track_name, recommended_tracks
 
     def analyze_student_performance(self, user_id, days_on_track_threshold):
         # Get recommended tracks

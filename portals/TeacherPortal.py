@@ -1154,8 +1154,14 @@ class TeacherPortal(BasePortal, ABC):
         st.markdown(
             f"<h2 style='text-align: left; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 24px;'> Track Recommendations </h2>", unsafe_allow_html=True)
-        TrackRecommendationDashboard(self.recording_repo, self.user_repo).display_recommendations(
-            selected_user_id, False)
+        selected_track_id, selected_track_name, _ = TrackRecommendationDashboard(
+            self.recording_repo, self.user_repo).display_recommendations(selected_user_id, False)
+        if selected_track_id:
+            st.markdown(
+                f"<h2 style='text-align: left; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+                f"-size: 24px;'> Remarks & Scores </h2>", unsafe_allow_html=True)
+            st.write(f"Track: {selected_track_name}")
+            RecordingsAndTrackScoreTrendsDisplay(self.recording_repo).show(selected_user_id, selected_track_id)
         st.markdown(
             f"<h2 style='text-align: left; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 24px;'> Practice Logs </h2>", unsafe_allow_html=True)

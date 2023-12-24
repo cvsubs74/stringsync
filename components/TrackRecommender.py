@@ -63,6 +63,7 @@ class TrackRecommender:
 
             if user_avg_scores.get(track_id, 0) < track_stat['recommendation_threshold_score']:
                 recommended_track_info = {
+                    'track_id': track_id,
                     'track_name': track_stat['name'],
                     'level': track_stat['level'],
                     'ordering_rank': track_stat['ordering_rank'],

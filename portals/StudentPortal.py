@@ -199,7 +199,7 @@ class StudentPortal(BasePortal, ABC):
             unsafe_allow_html=True
         )
 
-        selected_track_name, recommended_tracks = TrackRecommendationDashboard(
+        _, selected_track_name, recommended_tracks = TrackRecommendationDashboard(
             self.recording_repo, self.user_repo).display_recommendations(self.get_user_id())
         st.write("")
         # Set the track based on the selected button
