@@ -22,12 +22,10 @@ class TrackRecommendationDashboard:
         if allow_selection:
             st.markdown(
                 """
-                    <p>Explore our curated <b>track recommendations</b> designed to enhance your <b>skill development</b> and 
-                    address challenges from past sessions. Each track includes details on <b>complexity</b>, 
-                    your <b>average</b> and <b>top scores</b>, <b>peer benchmarks</b>, and a <b>tailored assessment</b> with 
-                    suggestions for improvement. Select a track that aligns with your goals, <b>consistently practice</b>, 
-                    and aim to surpass <b>threshold scores</b> for mastery. Remember to <b>review your recordings</b> 
-                    and <b>score trends</b> for insights into areas of improvement and to track your progress.</p>
+                - Explore our curated **track recommendations** designed to enhance your skill development and address challenges from past sessions.
+                - Each track includes details on **complexity**, your **average and top scores**, **peer benchmarks**, and a **tailored assessment** with suggestions for improvement.
+                - **Select a track** that aligns with your goals, consistently practice, and aim to surpass threshold scores for mastery.
+                - Remember to **review your recordings** and score trends for insights into areas of improvement and to track your progress.
                 """,
                 unsafe_allow_html=True
             )

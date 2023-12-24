@@ -103,7 +103,7 @@ class StudentPortal(BasePortal, ABC):
 
     def get_tab_dict(self):
         tabs = [
-            ("📊 Skills Dashboard", self.progress_dashboard),
+            ("📊 Skills Dashboard", self.skills_dashboard),
             ("📈 Skill Development", self.skill_development_dashboard),
             ("🏆 Hall of Fame", self.hall_of_fame),
             ("📥 Submissions", self.submissions_dashboard),
@@ -194,9 +194,10 @@ class StudentPortal(BasePortal, ABC):
     def skill_development_dashboard(self):
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
-            f"-size: 24px;'> 🎧 Track Recommendations & Skill Development 🎧</h2>",
+            f"-size: 24px;'> 🌱 Grow Your Musical Skills 🌱</h2>",
             unsafe_allow_html=True
         )
+
         selected_track_name, recommended_tracks = TrackRecommendationDashboard(
             self.recording_repo, self.user_repo).display_recommendations(self.get_user_id())
         st.write("")
@@ -427,33 +428,30 @@ class StudentPortal(BasePortal, ABC):
                     # End of the border div
                     st.markdown("</div>", unsafe_allow_html=True)
 
-    def progress_dashboard(self):
+    def skills_dashboard(self):
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
-            f"-size: 24px;'> 📈 Track Your Progress & Development 📈</h2>", unsafe_allow_html=True)
+            f"-size: 24px;'> 💡 Track Progress & Learning 💡</h2>", unsafe_allow_html=True)
+        self.divider()
+        st.markdown(
+            """
+            ## Skills Dashboard Overview
 
-        st.markdown("""
-            <div style='font-size: 18px;'>
-                <p>Welcome to your Skills Dashboard! Here's what you'll find here:</p>
-                <ul>
-                    <li><b>Track Visibility:</b> The table displays tracks from all levels up to the highest level (level n) where you've uploaded at least one recording. This ensures that you have a complete view of your journey from the very beginning to your current level.</li>
-                    <li><b>Recommended Tracks:</b> The <span style='color: blue;'>🔷</span> icon highlights the top 5 tracks chosen just for you based on your performance and skill level!</li>
-                    <li><b>Group Tracks:</b> The <span style='color: #FFA500;'>🔶</span> icon represents tracks that are commonly being worked on within your group. These are the top tracks that your group members are focusing on, giving you insight into group trends and focus areas.</li>
-                    <li><b>Peer Progress Benchmark:</b> The <span style='color: red;'>♦️</span> icon indicates the progress made by one or more team members in working through their track recommendations. It serves as a benchmark, showing you the levels and tracks where other team members are advancing, and can be a motivator for you to push your own boundaries and progress.</li>
-                    <li><b>Color-Coded Progress:</b> As you work through the tracks, the table color codes your progress:
-                        <ul>
-                            <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #93E353;'></span> Green: Your average score for a track has crossed the threshold. Great job!</li>
-                            <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EAE185;'></span> Yellow: You're getting there! Your score is within 80% of the threshold.</li>
-                            <li><span style='display: inline-block; width: 12px; height: 12px; background-color: #EE9F9F;'></span> Red: Keep practicing! Your score is below 80% of the threshold.</li>
-                        </ul>
-                    </li>
-                    <li><b>Understanding Your Position:</b> The blue diamond (<span style='color: blue;'>🔷</span>) indicates the tracks recommended for you. The orange diamond (<span style='color: #FFA500;'>🔶</span>) shows the common focus of your group, while the red diamond (<span style='color: red;'>♦️</span>) reveals the advanced progress of other team members on recommended tracks. Use this as motivation to accelerate your learning and aim to surpass these benchmarks.</li>
-                    <li><b>A Note for Advanced Students:</b> If you find yourself revisiting lower-level tracks that weren't available in your earlier training, please be patient. These foundational tracks are crucial for reinforcing basic skills and ensuring a well-rounded mastery. Your dedication to these tracks, despite your advanced level, is key to your overall musical development.</li>
-                </ul>
-                <p>This dashboard is a great way to see how much you've accomplished and what to work on next. Keep practicing, and you'll see those colors change!</p>
-            </div>
-            """, unsafe_allow_html=True)
-
+            - **Track Visibility**: View your journey from start to current level with tracks up to your highest level.
+            - **Recommended Tracks**: Look for the 🔷 icon! It marks your top 5 personalized track picks.
+            - **Group Tracks**: The 🔶 icon indicates tracks your group is working on, helping you stay in sync with group trends.
+            - **Peer Progress Benchmark**: The ♦️ icon shows your group's top performer's progress on tracks, offering a benchmark for your own goals.
+            - **Color-Coded Progress**: 
+              - Green: Above the threshold - excellent!
+              - Yellow: Close to the threshold - keep going!
+              - Red: Below 80% of the threshold - more practice needed.
+            - **Your Position**: Use the blue 🔷 (your recommended tracks), orange 🔶 (group focus), and red ♦️ (top performer) icons to gauge and motivate your progress.
+            - **Note for Advanced Students**: Revisiting foundational tracks solidifies basic skills for comprehensive mastery.
+            - **Keep Practicing**: This dashboard reflects your achievements and areas to focus on next. Watch the colors evolve with your skills!
+            """,
+            unsafe_allow_html=True
+        )
+        self.divider()
         self.get_skills_dashboard().build(self.get_user_id(), self.get_group_id())
         self.divider(5)
 
