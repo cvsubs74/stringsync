@@ -10,6 +10,7 @@ from streamlit_lottie import st_lottie
 from components.BadgeAwarder import BadgeAwarder
 from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
+from components.RecordingsAndTrackScoreTrendsDisplay import RecordingsAndTrackScoreTrendsDisplay
 from components.ScoreDisplay import ScoreDisplay
 from components.SoundEffectGenerator import SoundEffectGenerator
 from components.TimeConverter import TimeConverter
@@ -222,15 +223,6 @@ class StudentPortal(BasePortal, ABC):
         recording_uploader = self.get_recording_uploader()
         with col1:
             self.display_track_files(f"Track: {selected_track_name}", track_audio_path)
-            recording = self.recording_repo.get_latest_recording_remarks_by_user(
-                self.get_user_id(), [track['id']])
-            if recording:
-                score = recording[0]['score']
-                remarks = recording[0]['latest_remarks']
-                st.info(f"""
-                    **💬 Last Remark:** {remarks} \n
-                    **🌟 Last Score:** {score}
-                    """)
         with col2:
             uploaded, badge_awarded, recording_id, recording_audio_path = \
                 recording_uploader.upload(
@@ -249,10 +241,10 @@ class StudentPortal(BasePortal, ABC):
 
         if badge_awarded:
             self.show_animations()
-
-        recordings = self.recordings(track['id'])
-        TrackScoringTrendsDisplay().show(recordings)
-
+        st.write("")
+        self.divider()
+        RecordingsAndTrackScoreTrendsDisplay(self.recording_repo).show(
+            self.get_user_id(), track['id'])
         if uploaded:
             os.remove(recording_audio_path)
 
@@ -435,8 +427,6 @@ class StudentPortal(BasePortal, ABC):
         self.divider()
         st.markdown(
             """
-            ## Skills Dashboard Overview
-
             - **Track Visibility**: View your journey from start to current level with tracks up to your highest level.
             - **Recommended Tracks**: Look for the 🔷 icon! It marks your top 5 personalized track picks.
             - **Group Tracks**: The 🔶 icon indicates tracks your group is working on, helping you stay in sync with group trends.

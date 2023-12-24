@@ -11,6 +11,7 @@ from components.AudioProcessor import AudioProcessor
 from components.BadgeAwarder import BadgeAwarder
 from components.ListBuilder import ListBuilder
 from components.RecordingUploader import RecordingUploader
+from components.RecordingsAndTrackScoreTrendsDisplay import RecordingsAndTrackScoreTrendsDisplay
 from components.ScorePredictor import ScorePredictor
 from components.TrackRecommender import TrackRecommender
 from components.TrackScoringTrendsDisplay import TrackScoringTrendsDisplay
@@ -917,16 +918,7 @@ class TeacherPortal(BasePortal, ABC):
                             self.track_repo.flag_model_rebuild(track_id)
                         st.success("Remarks/Score updated successfully.")
 
-        # Create two columns for the layout
-        col1, col2 = st.columns(2)
-
-        # Display the table in the first column
-        with col1:
-            recordings = self.display_remarks_and_score(recordings)
-
-        # Display the graph in the second column
-        with col2:
-            TrackScoringTrendsDisplay().show(recordings)
+        RecordingsAndTrackScoreTrendsDisplay(self.recording_repo).show(user_id, track_id)
 
     def submissions(self):
         st.markdown(
@@ -1017,17 +1009,8 @@ class TeacherPortal(BasePortal, ABC):
                         self.track_repo.flag_model_rebuild(submission['track_id'])
                     st.success("Remarks/Score/Badge updated successfully.")
 
-            # Create two columns for the layout
-            col1, col2 = st.columns(2)
-
-            # Display the table in the first column
-            with col1:
-                recordings = self.display_remarks_and_score_for_recordings(
-                    submission['user_id'], submission['track_id'])
-
-            # Display the graph in the second column
-            with col2:
-                TrackScoringTrendsDisplay().show(recordings)
+            RecordingsAndTrackScoreTrendsDisplay(self.recording_repo).show(
+                submission['user_id'], submission['track_id'])
 
     def show_reviewed_submission(self, submission):
         expander_label = f"**{submission.get('user_name', 'N/A')} - " \
@@ -1080,47 +1063,8 @@ class TeacherPortal(BasePortal, ABC):
                         self.track_repo.flag_model_rebuild(submission['track_id'])
                     st.success("Remarks/Score/Badge updated successfully.")
 
-            # Create two columns for the layout
-            col1, col2 = st.columns(2)
-
-            # Display the table in the first column
-            with col1:
-                recordings = self.display_remarks_and_score_for_recordings(
-                    submission['user_id'], submission['track_id'])
-
-            # Display the graph in the second column
-            with col2:
-                TrackScoringTrendsDisplay().show(recordings)
-
-    def display_remarks_and_score_for_recordings(
-            self, user_id, track_id, timezone='America/Los_Angeles'):
-        recordings = self.recording_repo.get_recordings_by_user_id_and_track_id(
-            user_id, track_id, timezone)
-        if not recordings:
-            return None
-
-        return self.display_remarks_and_score(recordings)
-
-    @staticmethod
-    def display_remarks_and_score(recordings):
-        st.write("**Recordings**")
-        column_widths = [50, 25, 25]
-        list_builder = ListBuilder(column_widths)
-        list_builder.build_header(
-            column_names=['Remarks', 'Score', 'Time'])
-
-        # Build rows for the user activities listing
-        for recording in recordings:
-            local_timestamp = recording['timestamp'].strftime('%-I:%M %p | %b %d') \
-                if isinstance(recording['timestamp'], datetime) else recording['timestamp']
-
-            list_builder.build_row(row_data={
-                'Remarks': recording['remarks'],
-                'Score': recording['score'],
-                'Timestamp': local_timestamp
-            })
-
-        return recordings
+            RecordingsAndTrackScoreTrendsDisplay(self.recording_repo).show(
+                submission['user_id'], submission['track_id'])
 
     def check_and_update_distance_and_score(self, submission):
         if submission['distance'] and submission['score']:
@@ -1180,17 +1124,17 @@ class TeacherPortal(BasePortal, ABC):
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 28px;'> 📊 Track Your Students' Progress & Development 📊 </h2>", unsafe_allow_html=True)
         self.divider()
+        st.markdown(
+            f"<h2 style='text-align: left; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+            f"-size: 24px;'> Skills Progress Tracker </h2>", unsafe_allow_html=True)
         users = self.user_repo.get_users_by_org_id_and_type(
             self.get_org_id(), UserType.STUDENT.value)
 
         user_options = {user['name']: user['id'] for user in users}
         options = ['--Select a student--'] + list(user_options.keys())
         selected_username = st.selectbox(key=f"user_select_progress_dashboard",
-                                         label="Select a student to view their progress report:",
+                                         label="Select a student to view their skills progress report:",
                                          options=options)
-
-        divider = "<hr style='height:5px; margin-top: 10px; border-width:3px; background: lightblue;'>"
-        st.markdown(f"{divider}", unsafe_allow_html=True)
 
         selected_user_id = None
         if selected_username != '--Select a student--':
@@ -1207,12 +1151,19 @@ class TeacherPortal(BasePortal, ABC):
         st.write("")
         st.write("")
         st.write("")
-        self.divider(2)
+        st.markdown(
+            f"<h2 style='text-align: left; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+            f"-size: 24px;'> Track Recommendations </h2>", unsafe_allow_html=True)
         TrackRecommendationDashboard(self.recording_repo, self.user_repo).display_recommendations(
             selected_user_id, False)
+        st.markdown(
+            f"<h2 style='text-align: left; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+            f"-size: 24px;'> Practice Logs </h2>", unsafe_allow_html=True)
         self.get_practice_dashboard().build(selected_user_id)
-        self.divider(2)
-        self.get_badges_dashboard().show_badges_won(selected_user_id)
+        st.markdown(
+            f"<h2 style='text-align: left; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+            f"-size: 24px;'> Badges Won </h2>", unsafe_allow_html=True)
+        self.get_badges_dashboard().show_badges_won(selected_user_id, False)
 
     def assessments(self):
         st.markdown(

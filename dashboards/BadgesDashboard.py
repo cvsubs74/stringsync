@@ -99,7 +99,7 @@ class BadgesDashboard:
                 st.markdown(f"_{badge.criteria}_")
                 st.image(self.get_badge(badge.description), width=200)
 
-    def show_badges_won(self, user_id):
+    def show_badges_won(self, user_id, show_milestone_message=True):
         if 'milestone_sound_played' not in st.session_state:
             st.session_state['milestone_sound_played'] = False
 
@@ -107,19 +107,20 @@ class BadgesDashboard:
         total_badges = sum(badge_dict['count'] for badge_dict in badge_counts)
 
         if badge_counts:
-            # Determine the milestone message
-            if total_badges >= 10 and total_badges % 10 == 0 and \
-                    not st.session_state['milestone_sound_played']:
-                SoundEffectGenerator(self.storage_repo).play_sound_effect(SoundEffect.AWARD)
-                st.session_state['milestone_sound_played'] = True
-                milestone = total_badges
-                milestone_message = f"**Outstanding achievement!** You've reached the **{milestone}** badge **milestone**!"
-            else:
-                milestone_message = f"**Congratulations**! You have earned a total of **{total_badges}** badges."
+            if show_milestone_message:
+                # Determine the milestone message
+                if total_badges >= 10 and total_badges % 10 == 0 and \
+                        not st.session_state['milestone_sound_played']:
+                    SoundEffectGenerator(self.storage_repo).play_sound_effect(SoundEffect.AWARD)
+                    st.session_state['milestone_sound_played'] = True
+                    milestone = total_badges
+                    milestone_message = f"**Outstanding achievement!** You've reached the **{milestone}** badge **milestone**!"
+                else:
+                    milestone_message = f"**Congratulations**! You have earned a total of **{total_badges}** badges."
 
-            st.markdown(
-                f"<span style='font-size: 22px;color:#954444;'>{milestone_message} 🎉</span>",
-                unsafe_allow_html=True)
+                st.markdown(
+                    f"<span style='font-size: 22px;color:#954444;'>{milestone_message} 🎉</span>",
+                    unsafe_allow_html=True)
 
             st.write("")
 
