@@ -104,7 +104,7 @@ class StudentPortal(BasePortal, ABC):
     def get_tab_dict(self):
         tabs = [
             ("📊 Skills Dashboard", self.progress_dashboard),
-            ("🎤 Record", self.recording_dashboard),
+            ("📈 Skill Development", self.skill_development_dashboard),
             ("🏆 Hall of Fame", self.hall_of_fame),
             ("📥 Submissions", self.submissions_dashboard),
             ("⏲️ Practice Log", self.practice_dashboard),
@@ -191,10 +191,12 @@ class StudentPortal(BasePortal, ABC):
         self.divider(3)
         hall_of_fame_dashboard.build(self.get_group_id(), TimeFrame.PREVIOUS_MONTH)
 
-    def recording_dashboard(self):
+    def skill_development_dashboard(self):
         st.markdown(
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
-            f"-size: 24px;'> 🎙️ Record Your Tracks 🎙️</h2>", unsafe_allow_html=True)
+            f"-size: 24px;'> 🎧 Track Recommendations & Skill Development 🎧</h2>",
+            unsafe_allow_html=True
+        )
         selected_track_name, recommended_tracks = TrackRecommendationDashboard(
             self.recording_repo, self.user_repo).display_recommendations(self.get_user_id())
         st.write("")

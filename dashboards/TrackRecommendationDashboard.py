@@ -19,27 +19,18 @@ class TrackRecommendationDashboard:
         recommended_tracks = self.track_recommender.recommend_tracks(user_id)
         # Style and divider
         custom_style = "<style>h2 {font-size: 20px;}</style>"
-        st.markdown(f"{custom_style}<h2>Track Recommendations</h2>", unsafe_allow_html=True)
         if allow_selection:
-            st.markdown("""
-                <p>Based on your recording submissions and scores, we've curated these <b>track recommendations</b> to aid in your <b>skill development</b> and address challenges from past sessions. Here's a guide to understanding and utilizing this information:</p>
-                <ul>
-                    <li><b>Track Details</b>: Each track is accompanied by the following details:
-                        <ul>
-                            <li><b>Level</b>: Indicates the <b>complexity</b> and <b>skill requirement</b> of the track. It helps you select a track that matches your current ability and challenges you to grow further.</li>
-                            <li><b>Your Average Score</b>: Calculated from your <b>top 3 scoring recordings</b> for the track. This score reflects your <b>consistent performance</b> at your best and helps identify your strengths in the track.</li>
-                            <li><b>Track Average Score</b>: Derived from the <b>top 10 scoring recordings</b> across all students for that track. This provides a comparative benchmark, showing where you stand among peers and what excellence in the track looks like.</li>
-                            <li><b>Your Top Score</b>: The highest score you've achieved in a single recording for the track. It highlights your <b>peak performance</b> and potential in mastering the track's content.</li>
-                            <li><b>Track Top Score</b>: The highest score achieved by any student on the track. It serves as an <b>aspirational goal</b>, showcasing the highest level of achievement possible on the track.</li>
-                            <li><b>Track Threshold Score</b>: A predefined benchmark score for the track. Surpassing this score consistently signifies your <b>proficiency</b> and understanding of the track's material.</li>
-                            <li><b>Days on Track</b>: Represents the total number of days you have spent working on this track. It helps in assessing the <b>time you've invested</b> and could indicate if a different learning approach may be required based on the duration.</li>
-                            <li><b>Assessment</b>: Each track comes with a tailored assessment based on your performance. This includes <b>suggestions and observations</b> aimed at helping you understand your current standing and how to improve. <b>Read these carefully</b> to gain insights into your learning journey.</li>
-                        </ul>
-                    </li>
-                    <li><b>Action Steps</b>: <b>Choose a track</b> that aligns with your learning goals. <b>Consistent practice</b> and striving to surpass the threshold scores are crucial for your <b>skill development</b> and mastery of the track.</li>
-                </ul>
-                <p><b>Important Note:</b> Once you select a track, make sure to <b>review your recordings</b> and <b>score trends</b> displayed below. Each recording for the selected track will be shown along with scores and reviews. <b>Listen to your own recordings</b> and <b>pay close attention to the reviews</b> to understand the corrections that need to be made. This self-review process is vital for recognizing <b>areas of improvement</b> and tracking your <b>progress</b> over time.</p>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                """
+                    <p>Explore our curated <b>track recommendations</b> designed to enhance your <b>skill development</b> and 
+                    address challenges from past sessions. Each track includes details on <b>complexity</b>, 
+                    your <b>average</b> and <b>top scores</b>, <b>peer benchmarks</b>, and a <b>tailored assessment</b> with 
+                    suggestions for improvement. Select a track that aligns with your goals, <b>consistently practice</b>, 
+                    and aim to surpass <b>threshold scores</b> for mastery. Remember to <b>review your recordings</b> 
+                    and <b>score trends</b> for insights into areas of improvement and to track your progress.</p>
+                """,
+                unsafe_allow_html=True
+            )
 
         st.write("")
         # Create columns for each track
