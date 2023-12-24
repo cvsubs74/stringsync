@@ -332,64 +332,98 @@ class StudentPortal(BasePortal, ABC):
             f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
             f"-size: 24px;'> 📝 Review Your Submissions & Feedback 📝</h2>", unsafe_allow_html=True)
         self.divider()
-        col1, col2, col3 = st.columns([2.4, 2, 1])
-        with col2:
-            if not st.button("Load Submissions", key='load_submissions', type='primary'):
-                return
-
         # Fetch submissions from the database
         submissions = self.portal_repo.get_submissions_by_user_id(
-            self.get_user_id(), limit=self.get_limit())
+            self.get_user_id())
 
         if not submissions:
             st.info("No submissions found.")
             return
-        column_widths = [16.66, 16.66, 16.66, 17.2, 17.8, 15]
+
+        st.markdown(
+            f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+            f"-size: 20;'> 📝 Recent Submissions 📝</h2>", unsafe_allow_html=True)
+        column_widths = [25, 25, 25, 25]
         list_builder = ListBuilder(column_widths)
         list_builder.build_header(
-            column_names=["Track Name", "Track", "Recording", "Score", "Teacher Remarks", "Badges"])
+            column_names=["Track Name", "Score", "Remarks", "Time"])
 
-        # Display submissions
+        # Get the top 10 records if there are at least 10 records, or all records otherwise
+        top_records = submissions[:10] if len(submissions) >= 10 else submissions
+
+        # Iterate through the top records
+        for submission in top_records:
+            local_timestamp = submission['timestamp'].strftime('%-I:%M %p | %b %d')
+            list_builder.build_row(row_data={
+                'Track Name': submission['track_name'],
+                'Score': submission['score'],
+                'Remarks': submission['teacher_remarks'],
+                'Time': local_timestamp,
+            })
+
+        submissions_by_track = {}
         for submission in submissions:
-            st.markdown("<div style='border-top:1px solid #AFCAD6; height: 1px;'>", unsafe_allow_html=True)
-            with st.container():
-                col1, col2, col3, col4, col5, col6 = st.columns([0.9, 1, 1.1, 1, 1, 1])
+            track_name = submission['track_name']
+            if track_name not in submissions_by_track:
+                submissions_by_track[track_name] = []
+            submissions_by_track[track_name].append(submission)
 
-                col1.markdown(
-                    f"<div style='padding-top:5px;color:black;font-size:14px;text-align:left;'>"
-                    f"{submission['track_name']}</div>",
-                    unsafe_allow_html=True)
-                if submission['track_audio_url']:
-                    track_audio = self.storage_repo.download_blob_by_url(submission['track_audio_url'])
-                    col2.audio(track_audio, format='dashboards/m4a')
-                else:
-                    col2.warning("No audio available.")
+        self.divider()
+        st.markdown(
+            f"<h2 style='text-align: center; font-weight: bold; color: {self.get_tab_heading_font_color()}; font"
+            f"-size: 20;'> 📝 All Submissions 📝</h2>", unsafe_allow_html=True)
 
-                if submission['recording_audio_url']:
-                    track_audio = self.storage_repo.download_blob_by_url(submission['recording_audio_url'])
-                    col3.audio(track_audio, format='dashboards/m4a')
-                else:
-                    col3.warning("No audio available.")
+        # Display selectbox for track names
+        track_names = list(submissions_by_track.keys())
+        selected_track = st.selectbox("Select a Track", ["--Select a Track--"] + track_names)
 
-                col4.markdown(
-                    f"<div style='padding-top:5px;color:black;font-size:14px;text-align:left;'>"
-                    f"{submission.get('score', 'N/A')}</div>",
-                    unsafe_allow_html=True)
+        # Display submissions for the selected track
+        if selected_track != '--Select a Track--':
+            column_widths = [16.66, 16.66, 16.66, 17.2, 17.8, 15]
+            list_builder = ListBuilder(column_widths)
+            list_builder.build_header(
+                column_names=["Track Name", "Track", "Recording", "Score", "Teacher Remarks", "Badges"])
 
-                # Get the teacher_remarks, replacing new lines with <br> for HTML display
-                teacher_remarks_html = submission.get('teacher_remarks', 'N/A').replace("\n", "<br>")
+            for submission in submissions_by_track[selected_track]:
+                st.markdown("<div style='border-top:1px solid #AFCAD6; height: 1px;'>", unsafe_allow_html=True)
+                with st.container():
+                    col1, col2, col3, col4, col5, col6 = st.columns([0.9, 1, 1.1, 1, 1, 1])
 
-                # Now use markdown to display the teacher_remarks with HTML new lines
-                col5.markdown(
-                    f"<div style='padding-top:5px;color:black;font-size:14px;'>{teacher_remarks_html}</div>",
-                    unsafe_allow_html=True)
+                    col1.markdown(
+                        f"<div style='padding-top:5px;color:black;font-size:14px;text-align:left;'>"
+                        f"{submission['track_name']}</div>",
+                        unsafe_allow_html=True)
+                    if submission['track_audio_url']:
+                        track_audio = self.storage_repo.download_blob_by_url(submission['track_audio_url'])
+                        col2.audio(track_audio, format='dashboards/m4a')
+                    else:
+                        col2.warning("No audio available.")
 
-                badge = self.user_achievement_repo.get_badge_by_recording(submission['recording_id'])
-                if badge:
-                    col6.image(self.get_badge(badge), width=75)
+                    if submission['recording_audio_url']:
+                        track_audio = self.storage_repo.download_blob_by_url(submission['recording_audio_url'])
+                        col3.audio(track_audio, format='dashboards/m4a')
+                    else:
+                        col3.warning("No audio available.")
 
-                # End of the border div
-                st.markdown("</div>", unsafe_allow_html=True)
+                    col4.markdown(
+                        f"<div style='padding-top:5px;color:black;font-size:14px;text-align:left;'>"
+                        f"{submission.get('score', 'N/A')}</div>",
+                        unsafe_allow_html=True)
+
+                    # Get the teacher_remarks, replacing new lines with <br> for HTML display
+                    teacher_remarks_html = submission.get('teacher_remarks', 'N/A').replace("\n", "<br>")
+
+                    # Now use markdown to display the teacher_remarks with HTML new lines
+                    col5.markdown(
+                        f"<div style='padding-top:5px;color:black;font-size:14px;'>{teacher_remarks_html}</div>",
+                        unsafe_allow_html=True)
+
+                    badge = self.user_achievement_repo.get_badge_by_recording(submission['recording_id'])
+                    if badge:
+                        col6.image(self.get_badge(badge), width=75)
+
+                    # End of the border div
+                    st.markdown("</div>", unsafe_allow_html=True)
 
     def progress_dashboard(self):
         st.markdown(

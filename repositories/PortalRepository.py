@@ -140,7 +140,7 @@ class PortalRepository:
         cursor.execute(query, params)
         return cursor.fetchall()
 
-    def get_submissions_by_user_id(self, user_id, limit=20, timezone='America/Los_Angeles'):
+    def get_submissions_by_user_id(self, user_id, timezone='America/Los_Angeles'):
         cursor = self.connection.cursor(pymysql.cursors.DictCursor)
         query = """
         SELECT r.timestamp, t.name AS track_name, r.blob_url AS recording_audio_url, 
@@ -150,9 +150,8 @@ class PortalRepository:
         JOIN tracks t ON r.track_id = t.id
         WHERE r.user_id = %s
         ORDER BY r.timestamp DESC
-        LIMIT %s
         """
-        cursor.execute(query, (user_id, limit))
+        cursor.execute(query, user_id)
         submissions = cursor.fetchall()
         for submission in submissions:
             local_tz = pytz.timezone(timezone)
