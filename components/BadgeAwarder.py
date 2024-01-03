@@ -56,7 +56,7 @@ class BadgeAwarder:
         # Trailblazer badge award
         top_performer_id = self.track_recommender.find_top_performer_in_group(group_id)
         self.user_achievement_repo.award_user_badge_by_time_frame(
-            top_performer_id, UserBadges.WEEKLY_TRAILBLAZER, timeframe, 0)
+            top_performer_id, UserBadges.WEEKLY_AND_MONTHLY_TRAILBLAZER, timeframe, 0)
         return True
 
     def award_track_badge(self, org_id, user_id, recording_id, badge: TrackBadges,

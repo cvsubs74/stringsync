@@ -283,9 +283,9 @@ class PortalRepository:
             badges = self.get_badges_based_on_timeframe(time_frame)
             formatted_badges = ', '.join(f"'{badge}'" for badge in badges)
 
-            # Query to get the student name, the weekly badge they won, and their avatar name
+            # Query to get the student name, the badge they won, and their avatar name
             query = f"""
-                SELECT u.name AS student_name, ua.badge AS weekly_badge, ua.value as value, a.name AS avatar
+                SELECT DISTINCT u.name AS student_name, ua.badge AS badge, ua.value as value, a.name AS avatar
                 FROM users u
                 JOIN user_achievements ua ON u.id = ua.user_id
                 LEFT JOIN avatars a ON u.avatar_id = a.id

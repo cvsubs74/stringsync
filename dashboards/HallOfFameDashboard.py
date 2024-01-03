@@ -52,14 +52,14 @@ class HallOfFameDashboard:
 
             # Group winners by badge
             for winner in winners:
-                badge = winner['weekly_badge']
+                badge = winner['badge']
                 if badge not in winners_by_badge:
                     winners_by_badge[badge] = []
 
                 winners_by_badge[badge].append(winner)
 
             # Check and display TRAILBLAZER badge first if it exists
-            trailblazer_key = UserBadges.WEEKLY_TRAILBLAZER.description
+            trailblazer_key = UserBadges.WEEKLY_AND_MONTHLY_TRAILBLAZER.description
             if trailblazer_key in winners_by_badge:
                 self.display_badge(winners_by_badge[trailblazer_key], trailblazer_key)
 

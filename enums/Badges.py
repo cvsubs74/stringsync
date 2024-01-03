@@ -73,11 +73,11 @@ class UserBadges(BaseBadge):
         "**Ten days** of **excellence**! Your commitment is unmatched!",
         "You've achieved an incredible 10-day practice streak!"
     )
-    WEEKLY_TRAILBLAZER = (
+    WEEKLY_AND_MONTHLY_TRAILBLAZER = (
         "Trailblazer", 1,
-        "Lead the pack by conquering the most recommended tracks in a week.",
+        "Lead the pack by conquering the most recommended tracks.",
         "You're **blazing a trail** with your **rapid progress**!",
-        "You've knocked off the most recommended tracks this week, earning the Weekly Trailblazer badge!"
+        "You've knocked off the most recommended tracks, earning the Trailblazer badge!"
     )
     WEEKLY_MAX_PRACTICE_MINUTES = (
         "Practice Champ", 60,
